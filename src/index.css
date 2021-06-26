@@ -6,6 +6,10 @@
   font-family: "AirbnbCerealLight";
   src: url("./fonts/AirbnbCereal/AirbnbCerealLight.ttf");
 }
+@font-face {
+  font-family: "AirbnbCerealBook";
+  src: url("./fonts/AirbnbCereal/AirbnbCerealBook.ttf");
+}
 
 body {
   margin: 0;

@@ -1,13 +1,13 @@
 import "./CustomCard.css";
 import React from "react";
 
-const CustomCard = ({ url, vid, left, onClick }) => {
+const CustomCard = ({ url, vid }) => {
   return (
-    <div className="custom-card" onClick={onClick}>
-      <div className="card-content">
+    <div className="custom-card-2">
+      <div className="card-content-2">
         {url ? (
           <img
-            className="card-image"
+            className="card-image-2"
             src={url}
             alt="card-main"
             draggable="false"
@@ -17,14 +17,12 @@ const CustomCard = ({ url, vid, left, onClick }) => {
             autoPlay
             loop
             muted
-            className="card-vid"
+            className="card-vid-2"
             src={vid}
             alt="card-main"
             draggable="false"
           ></video>
         )}
-        <span className="left-one">{left}</span>
-        <span className="right-one">S</span>
       </div>
     </div>
   );

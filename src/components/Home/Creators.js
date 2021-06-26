@@ -33,6 +33,8 @@ const useStyles = makeStyles({
     justifyContent: "space-between",
     overflowX: "auto",
     height: "80px",
+    paddingBottom: "30px",
+    overflowY: "hidden",
   },
 });
 

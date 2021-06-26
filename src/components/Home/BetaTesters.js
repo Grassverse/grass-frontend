@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 
 import { makeStyles } from "@material-ui/core";
+import { useNavigate } from "react-router-dom";
 
 import CustomCard from "./CustomCard";
 
@@ -22,6 +23,7 @@ let ele;
 
 const BetaTesters = () => {
   const classes = useStyles();
+  const navigate = useNavigate();
 
   const mouseMoveHandler = function (e) {
     // How far the mouse has been moved
@@ -52,7 +54,7 @@ const BetaTesters = () => {
     };
 
     ele.addEventListener("mousemove", mouseMoveHandler);
-    ele.addEventListener("mouseup", mouseUpHandler);
+    document.addEventListener("mouseup", mouseUpHandler);
   };
 
   useEffect(() => {
@@ -69,6 +71,9 @@ const BetaTesters = () => {
         <CustomCard
           url="https://ternoa.mypinata.cloud/ipfs/QmfUt4DeFsgpUn4oyzATVp1uMAEe56qvRCrodgAX4dPLqs"
           left="5/5"
+          onClick={() => {
+            navigate("/nft");
+          }}
         />
         <CustomCard
           url="https://ternoa.mypinata.cloud/ipfs/Qmc3UTMWphtzv46qUwc4Zo57CDJZthZ77bRSRcS2zNKGRc"

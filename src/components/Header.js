@@ -2,6 +2,7 @@ import clsx from "clsx";
 import React from "react";
 
 import { makeStyles, Button, Hidden } from "@material-ui/core";
+import { useNavigate } from "react-router-dom";
 
 const useStyles = makeStyles(() => ({
   menu: {
@@ -48,6 +49,8 @@ const useStyles = makeStyles(() => ({
 
 const Header = () => {
   const classes = useStyles();
+  const navigate = useNavigate();
+
   return (
     <div>
       <div
@@ -57,7 +60,14 @@ const Header = () => {
           alignItems: "center",
         }}
       >
-        <div>LOGO HERE</div>
+        <div
+          style={{ cursor: "pointer" }}
+          onClick={() => {
+            navigate("/");
+          }}
+        >
+          LOGO HERE
+        </div>
         <div>
           <ul className={classes.menu}>
             <Hidden mdDown>

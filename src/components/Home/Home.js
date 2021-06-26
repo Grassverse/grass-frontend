@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import clsx from "clsx";
 
-import vid from "../assets/videos/ternoart.mp4";
+import vid from "../../assets/videos/ternoart.mp4";
 
 import Creators from "./Creators";
 import BetaTesters from "./BetaTesters";
