@@ -3,6 +3,8 @@ import clsx from "clsx";
 
 import vid from "../../assets/videos/ternoart.mp4";
 
+import OurNfts from "./OurNfts";
+
 import Creators from "./Creators";
 import BetaTesters from "./BetaTesters";
 import MostPopular from "./MostPopular";
@@ -43,7 +45,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const Home = () => {
+const Home = ({ nfts }) => {
   const classes = useStyles();
 
   const [mute, setMute] = useState(true);
@@ -74,6 +76,7 @@ const Home = () => {
         </div>
       </div>
       <div style={{ textAlign: "left", margin: "100px 0px 40px 0px" }}>
+        <OurNfts nfts={nfts} />
         <Creators />
         <BetaTesters />
         <MostPopular />

@@ -4,18 +4,18 @@ import Layout from "./components/Layout";
 import Home from "./components/Home/Home";
 import NftPage from "./components/NftPage/NftPage";
 
-const routes = [
+const setPropsToRoutes = (nfts) => [
   {
     path: "/",
-    element: <Layout />,
+    element: <Layout nfts={nfts} />,
     children: [
       {
         path: "/",
-        element: <Home />,
+        element: <Home nfts={nfts} />,
       },
       {
         path: "/nft",
-        element: <NftPage />,
+        element: <NftPage nfts={nfts} />,
       },
       {
         path: "*",
@@ -25,4 +25,4 @@ const routes = [
   },
 ];
 
-export default routes;
+export default setPropsToRoutes;

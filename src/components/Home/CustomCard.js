@@ -1,11 +1,25 @@
+import React, { useState, useEffect } from "react";
 import "./CustomCard.css";
-import React from "react";
 
-const CustomCard = ({ url, vid, left, onClick }) => {
+const CustomCard = ({ url, left, onClick }) => {
+  const [image, setImage] = useState(true);
+
+  const checkUrl = () => {
+    var img = new Image();
+    img.onerror = () => {
+      setImage(false);
+    };
+    img.src = url;
+  };
+
+  useEffect(() => {
+    checkUrl();
+  }, []);
+
   return (
     <div className="custom-card" onClick={onClick}>
       <div className="card-content">
-        {url ? (
+        {image ? (
           <img
             className="card-image"
             src={url}
@@ -18,7 +32,7 @@ const CustomCard = ({ url, vid, left, onClick }) => {
             loop
             muted
             className="card-vid"
-            src={vid}
+            src={url}
             alt="card-main"
             draggable="false"
           ></video>

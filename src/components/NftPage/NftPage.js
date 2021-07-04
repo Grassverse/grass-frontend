@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import { Button, Grid } from "@material-ui/core";
 import CustomCard from "./CustomCard";
@@ -6,6 +6,10 @@ import CustomCard from "./CustomCard";
 import CheckCircleOutlineRoundedIcon from "@material-ui/icons/CheckCircleOutlineRounded";
 
 const NftPage = () => {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <Grid container style={{ display: "flex", margin: "30px 0px" }}>
       <CustomCard url="https://ternoa.mypinata.cloud/ipfs/QmfUt4DeFsgpUn4oyzATVp1uMAEe56qvRCrodgAX4dPLqs" />
@@ -35,7 +39,7 @@ const NftPage = () => {
           DeLorean DMC-12. A Pop vision of the magic capsule"
         </p>
         <Grid
-          container
+          item
           sm={10}
           md={8}
           style={{
