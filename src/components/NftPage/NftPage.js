@@ -1,18 +1,83 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 import { Button, Grid } from "@material-ui/core";
 import CustomCard from "./CustomCard";
 
 import CheckCircleOutlineRoundedIcon from "@material-ui/icons/CheckCircleOutlineRounded";
 
+import axios from "axios";
+
 const NftPage = () => {
+  const [nft, setNft] = useState(null);
+  const [history, setHistory] = useState([]);
+
+  const getNft = (id) => {
+    axios
+      .post("https://api.thegraph.com/subgraphs/name/swapnil1023/grass3", {
+        query: `{
+        nftentity(id: "${"0x" + id}") {
+          name
+          description
+          id
+          uri
+          owner
+          artist
+        }
+      }`,
+      })
+      .then((res) => {
+        setNft(res.data.data.nftentity);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  const getTransactionHistory = (id) => {
+    axios
+      .post("https://api.thegraph.com/subgraphs/name/swapnil1023/grass3", {
+        query: `{
+        transactions(where: {token: "${
+          "0x" + id
+        }"}, orderBy: timestamp, orderDirection: asc) {
+          id
+          from
+          to
+          timestamp
+          token {
+            id
+          }
+        }
+      }`,
+      })
+      .then((res) => {
+        const transactions = res.data.data.transactions;
+
+        if (transactions.length > 0) {
+          let hist = [];
+          transactions.forEach((el) => {
+            hist.push({ person: el.to, time: el.timestamp });
+          });
+          setHistory(hist);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
   useEffect(() => {
     window.scrollTo(0, 0);
+
+    const url = window.location.pathname;
+    const id = url.split("/")[url.split("/").length - 1];
+    getNft(id);
+    getTransactionHistory(id);
   }, []);
 
   return (
     <Grid container style={{ display: "flex", margin: "30px 0px" }}>
-      <CustomCard url="https://ternoa.mypinata.cloud/ipfs/QmfUt4DeFsgpUn4oyzATVp1uMAEe56qvRCrodgAX4dPLqs" />
+      <CustomCard url={nft ? nft.uri : ""} />
       <Grid item md={7} style={{ margin: "0px 30px 30px 30px" }}>
         <h1
           style={{
@@ -22,10 +87,10 @@ const NftPage = () => {
             margin: "0px 0px 10px 0px",
           }}
         >
-          CAPS machine
+          {nft ? nft.name : " "}
         </h1>
         <hr />
-        <p
+        <div
           style={{
             fontFamily: "AirbnbCerealBook",
             textAlign: "left",
@@ -34,11 +99,26 @@ const NftPage = () => {
             margin: "35px 0px 30px 0px",
           }}
         >
-          "I wanted to represent an analogy, the Ternoa capsules as ""caps"",
-          drugs, gelules....permitting time travel thanks to the mythical
-          DeLorean DMC-12. A Pop vision of the magic capsule"
-        </p>
-        <Grid
+          {nft
+            ? nft.description
+                .toString()
+                .split("\\n")
+                .map((el, index) => {
+                  if (
+                    index ===
+                    nft.description.toString().split("\\n").length - 1
+                  )
+                    return <div key={"element" + index}>{el}</div>;
+                  return (
+                    <div key={"element" + index}>
+                      {el}
+                      <br />
+                    </div>
+                  );
+                })
+            : " "}
+        </div>
+        {/* <Grid
           item
           sm={10}
           md={8}
@@ -98,7 +178,7 @@ const NftPage = () => {
               12.7301$
             </span>
           </Grid>
-        </Grid>
+        </Grid> */}
         <div style={{ display: "flex", marginTop: "30px" }}>
           <div>
             <h4 style={{ margin: "0px 20px 0px 0px" }}>History</h4>
@@ -109,50 +189,38 @@ const NftPage = () => {
             </div>
           </div>
         </div>
-        <div
-          style={{ display: "flex", alignItems: "center", margin: "20px 0px" }}
-        >
-          <CheckCircleOutlineRoundedIcon />
-          <img
-            src="https://marketplacemedias.fra1.digitaloceanspaces.com/5DqWHNhop6ZLWTJmdBzGjtVLnrH6AaEoN2k4WDkWaWTUsu7U"
-            style={{ width: "60px", margin: "0px 10px", borderRadius: "50%" }}
-            alt="user-avatar"
-          />
+        {history.map((el, index) => (
           <div
+            key={"owner-" + index}
             style={{
               display: "flex",
-              flexDirection: "column",
-              textAlign: "left",
-              fontSize: "13px",
-              fontWeight: "900",
-              fontFamily: "AirbnbCerealBook",
+              alignItems: "center",
+              margin: "20px 0px",
             }}
           >
-            <span style={{ color: "rgb(116, 23, 234)" }}>Owner</span>
-            <span>Rafael Pereira</span>
+            <CheckCircleOutlineRoundedIcon />
+            <img
+              src="https://marketplacemedias.fra1.digitaloceanspaces.com/5DqWHNhop6ZLWTJmdBzGjtVLnrH6AaEoN2k4WDkWaWTUsu7U"
+              style={{ width: "60px", margin: "0px 10px", borderRadius: "50%" }}
+              alt="user-avatar"
+            />
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                textAlign: "left",
+                fontSize: "13px",
+                fontWeight: "900",
+                fontFamily: "AirbnbCerealBook",
+              }}
+            >
+              <span style={{ color: "rgb(116, 23, 234)" }}>
+                {index === history.length - 1 ? "Artist" : "Owner"}
+              </span>
+              <span>{el.person}</span>
+            </div>
           </div>
-        </div>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <CheckCircleOutlineRoundedIcon />
-          <img
-            src="https://marketplacemedias.fra1.digitaloceanspaces.com/5DqWHNhop6ZLWTJmdBzGjtVLnrH6AaEoN2k4WDkWaWTUsu7U"
-            style={{ width: "60px", margin: "0px 10px", borderRadius: "50%" }}
-            alt="user-avatar"
-          />
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              textAlign: "left",
-              fontSize: "13px",
-              fontWeight: "900",
-              fontFamily: "AirbnbCerealBook",
-            }}
-          >
-            <span style={{ color: "rgb(116, 23, 234)" }}>Creator</span>
-            <span>Rafael Pereira</span>
-          </div>
-        </div>
+        ))}
       </Grid>
     </Grid>
   );

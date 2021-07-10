@@ -76,7 +76,7 @@ const Home = ({ nfts }) => {
         </div>
       </div>
       <div style={{ textAlign: "left", margin: "100px 0px 40px 0px" }}>
-        <OurNfts nfts={nfts} />
+        {nfts.length !== 0 ? <OurNfts nfts={nfts} /> : null}
         <Creators />
         <BetaTesters />
         <MostPopular />

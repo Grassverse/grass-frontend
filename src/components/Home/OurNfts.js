@@ -79,6 +79,10 @@ const OurNfts = ({ nfts }) => {
     ele = element;
 
     element.addEventListener("mousedown", mouseDownHandler);
+
+    return () => {
+      element.removeEventListener("mousedown", mouseDownHandler);
+    };
   }, []);
 
   return (
@@ -86,13 +90,14 @@ const OurNfts = ({ nfts }) => {
       <h2 style={{ letterSpacing: "1px", marginBottom: 0 }}>Our NFTs</h2>
       <div id="our-nfts" className={classes.section}>
         {nfts.map((nft, index) => {
+          console.log(nft);
           return (
             <CustomCard
               key={index}
               url={nft.uri}
               left="5/5"
               onClick={() => {
-                navigate("/nft");
+                navigate(`/nft/${nft.id.substr(2)}`);
               }}
             />
           );

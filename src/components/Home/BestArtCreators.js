@@ -80,7 +80,7 @@ const BestArtCreators = () => {
           url="https://ternoa.mypinata.cloud/ipfs/QmUbBaZdoQ92ocbnwDKWoeBYKHRDEGzWRrzQd8M6vFtt29"
           left="1/1"
         />
-        <CustomCard vid={v1} left="1/1" />
+        <CustomCard url={v1} left="1/1" />
       </div>
     </div>
   );

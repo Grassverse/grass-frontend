@@ -1,4 +1,4 @@
-export const CONTRACT_ADDRESS = "0x96a0b89254678Ca5cC25021B9B2c77E59100509D";
+export const CONTRACT_ADDRESS = "0xeBb872D5394328822fDe39FD988c37e91930c7cF";
 export const CONTRACT_ABI = [
   {
     inputs: [],
@@ -80,6 +80,16 @@ export const CONTRACT_ABI = [
         name: "uri",
         type: "string",
       },
+      {
+        internalType: "string",
+        name: "name",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "description",
+        type: "string",
+      },
     ],
     name: "mintNFT",
     outputs: [
@@ -91,6 +101,43 @@ export const CONTRACT_ABI = [
     ],
     stateMutability: "nonpayable",
     type: "function",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "uri",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "artist",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "name",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "description",
+        type: "string",
+      },
+    ],
+    name: "NFTCreated",
+    type: "event",
   },
   {
     anonymous: false,

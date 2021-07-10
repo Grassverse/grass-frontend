@@ -1,0 +1,35 @@
+.create-input::placeholder {
+  color: rgb(190, 190, 190) !important;
+}
+
+.create-input {
+  border: 1px solid #e1e1e1 !important;
+  outline: none !important;
+  width: 100% !important;
+  border-radius: 7px !important;
+  padding: 14px 16px !important;
+  font-size: 15px !important;
+  font-family: AirbnbCerealBook !important;
+  box-sizing: border-box;
+}
+
+.create-nft-button {
+  text-transform: none !important;
+  border-radius: 22px !important;
+  padding: 14px 40px !important;
+  font-weight: 500 !important;
+  background-color: #7417ea !important;
+  color: white !important;
+  transition: 0.3s ease-out !important;
+  border: 0px solid;
+  cursor: pointer;
+  font-family: "AirbnbCerealBook";
+  font-weight: bold !important;
+  letter-spacing: 0.6px;
+  font-size: 12px;
+}
+
+.create-nft-button:hover {
+  color: white !important;
+  background-color: black !important;
+}

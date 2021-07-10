@@ -1,6 +1,6 @@
 .custom-card-2 {
   /* height: 330px; */
-  width: min(30vw, 300px);
+  width: 300px;
   margin-right: 20px;
   margin: auto;
   margin-bottom: 30px;
@@ -9,8 +9,8 @@
 .card-content-2 {
   display: flex;
   border-radius: 10px;
-  height: calc(1.6 * min(30vw, 300px));
-  width: min(30vw, 300px);
+  height: 480px;
+  width: 300px;
   box-shadow: 0 0 14.5243px 5.0835px rgb(0 0 0 / 15%);
   background: linear-gradient(180deg, #f29fff, #878cff);
   overflow: hidden;
