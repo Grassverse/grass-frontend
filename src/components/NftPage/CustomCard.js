@@ -26,12 +26,10 @@ const CustomCard = ({ url, onClick }) => {
       loadMedia(url);
     } else {
       axios
-        .get(`https://gateway.pinata.cloud/ipfs/${url}`)
+        .get(`https://ipfs.io/ipfs/${url}`)
         .then((res) => {
           loadMedia(
-            `https://gateway.pinata.cloud/ipfs/${
-              res.data.image.split("ipfs://")[1]
-            }`
+            `https://ipfs.io/ipfs/${res.data.image.split("ipfs://")[1]}`
           );
         })
         .catch((err) => {

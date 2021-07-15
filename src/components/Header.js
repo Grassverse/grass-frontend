@@ -5,6 +5,8 @@ import getWeb3 from "../getWeb3";
 import Web3 from "web3";
 import { CONTRACT_ABI, CONTRACT_ADDRESS } from "../config";
 
+import logo from "../assets/images/logo/logo_g.png";
+
 import {
   makeStyles,
   withStyles,
@@ -192,6 +194,10 @@ const Header = () => {
     }
   };
 
+  const getCode = (address) => {
+    return web3.eth.getCode(address);
+  };
+
   useEffect(() => {
     if (contract) {
       setStatus(1);
@@ -236,7 +242,14 @@ const Header = () => {
             navigate("/");
           }}
         >
-          LOGO HERE
+          <img
+            src={logo}
+            alt="grass-logo"
+            style={{
+              width: "60px",
+              filter: "grayscale(100%) invert(1) contrast(800%)",
+            }}
+          />
         </div>
         <div>
           <ul className={classes.menu}>

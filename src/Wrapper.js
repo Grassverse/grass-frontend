@@ -11,9 +11,6 @@ import { Container } from "@material-ui/core";
 const Wrapper = ({ nfts }) => {
   const routing = useRoutes(setPropsToRoutes(nfts));
 
-  console.log(setPropsToRoutes(nfts));
-
-  console.log(nfts);
   //   if (nfts)
   //     return (
   //       <React.Fragment>

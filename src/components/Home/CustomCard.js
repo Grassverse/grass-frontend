@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from "react";
 import "./CustomCard.css";
 
+import Web3 from "web3";
+
+import { Avatar } from "@material-ui/core";
+
+import crtr from "../../assets/images/creators/1.jpg";
+
 import axios from "axios";
 
-const CustomCard = ({ url, left, onClick }) => {
+const CustomCard = ({ url, left, onClick, nft }) => {
   const [image, setImage] = useState(true);
   const [source, setSource] = useState("");
 
@@ -25,12 +31,10 @@ const CustomCard = ({ url, left, onClick }) => {
       loadMedia(url);
     } else {
       axios
-        .get(`https://gateway.pinata.cloud/ipfs/${url}`)
+        .get(`https://ipfs.io/ipfs/${url}`)
         .then((res) => {
           loadMedia(
-            `https://gateway.pinata.cloud/ipfs/${
-              res.data.image.split("ipfs://")[1]
-            }`
+            `https://ipfs.io/ipfs/${res.data.image.split("ipfs://")[1]}`
           );
         })
         .catch((err) => {
@@ -64,8 +68,40 @@ const CustomCard = ({ url, left, onClick }) => {
             draggable="false"
           ></video>
         )}
-        <span className="left-one">{left}</span>
-        <span className="right-one">S</span>
+        {nft.sale ? <span className="left-one">SALE</span> : null}
+        <span className="right-one">
+          <Avatar src={crtr}></Avatar>
+        </span>
+        <div className="hover-card">
+          <div
+            style={{
+              textAlign: "center",
+              padding: "20px",
+            }}
+          >
+            {nft.name}
+            <p
+              style={{
+                wordWrap: "break-word",
+                fontFamily: "AirbnbCerealLight",
+              }}
+            >
+              {nft.owner.substr(2, 4) + "..." + nft.owner.substr(-4)}
+            </p>
+            {nft.sale ? (
+              <p
+                style={{
+                  backgroundColor: "white",
+                  color: "black",
+                  padding: "4px 0px",
+                  borderRadius: "5px",
+                }}
+              >
+                {Web3.utils.fromWei(nft.sale.price, "ether") + " ETH"}
+              </p>
+            ) : null}
+          </div>
+        </div>
       </div>
     </div>
   );

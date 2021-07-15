@@ -1,13 +1,13 @@
 .custom-card {
-  height: 330px;
-  width: 220px;
+  height: 450px;
+  width: 280px;
   margin-right: 20px;
 }
 
 .card-content {
   border-radius: 10px;
-  height: 330px;
-  width: 220px;
+  height: 450px;
+  width: 280px;
   box-shadow: 0 0 14.5243px 5.0835px rgb(0 0 0 / 15%);
   background: linear-gradient(180deg, #f29fff, #878cff);
   overflow: hidden;
@@ -15,22 +15,25 @@
   cursor: pointer;
 }
 
-.card-content:hover img {
+.card-content:hover .card-image,
+.card-content:hover .card-vid {
   transform: scale(1.09);
 }
 
 .card-image {
   border-radius: 10px;
-  height: 330px;
-  width: 220px;
+  height: 450px;
+  width: 280px;
   transform: scale(1);
   transition: 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+
+  object-fit: cover;
 }
 
 .card-vid {
   border-radius: 10px;
-  height: 330px;
-  width: 220px;
+  height: 450px;
+  width: 280px;
   transform: scale(1);
   transition: 0.8s cubic-bezier(0.25, 1, 0.5, 1);
   object-fit: cover;
@@ -42,14 +45,14 @@
 
 .left-one {
   position: absolute;
-  top: 16px;
+  top: 20px;
   left: 16px;
   z-index: 4;
-  padding: 2.5px 20px;
+  padding: 2.5px 14px;
   background-color: white;
   color: rgb(116, 23, 234);
   border-radius: 15px;
-  font-size: 19px;
+  font-size: 16px;
 }
 
 .right-one {
@@ -57,9 +60,31 @@
   top: 16px;
   right: 16px;
   z-index: 4;
-  padding: 2.5px 20px;
-  background-color: rgb(116, 23, 234);
+  /* padding: 1px; */
+  background-color: white;
   color: white;
-  border-radius: 15px;
+  border-radius: 50%;
   font-size: 19px;
+
+  box-shadow: 0 4px 4px rgb(0 0 0 / 25%);
+}
+
+.hover-card {
+  height: 150px;
+  position: absolute;
+  bottom: 0;
+  transform: translateY(100%);
+  transition: 0.3s ease-in-out;
+  width: 100%;
+
+  color: white;
+  background-image: linear-gradient(transparent, black);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-content:hover .hover-card {
+  transform: translateY(0);
 }

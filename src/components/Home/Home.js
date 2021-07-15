@@ -3,6 +3,7 @@ import clsx from "clsx";
 
 import vid from "../../assets/videos/ternoart.mp4";
 
+import CurrentSales from "./CurrentSales";
 import OurNfts from "./OurNfts";
 
 import Creators from "./Creators";
@@ -76,13 +77,14 @@ const Home = ({ nfts }) => {
         </div>
       </div>
       <div style={{ textAlign: "left", margin: "100px 0px 40px 0px" }}>
+        <CurrentSales />
         {nfts.length !== 0 ? <OurNfts nfts={nfts} /> : null}
         <Creators />
-        <BetaTesters />
+        {/* <BetaTesters />
         <MostPopular />
         <BestSellers />
         <BestArtCreators />
-        <BoxedCreators />
+        <BoxedCreators /> */}
       </div>
       <Button
         className={clsx(classes.button, classes.b0)}

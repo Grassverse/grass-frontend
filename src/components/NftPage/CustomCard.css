@@ -1,9 +1,9 @@
 .custom-card-2 {
   /* height: 330px; */
   width: 300px;
-  margin-right: 20px;
-  margin: auto;
-  margin-bottom: 30px;
+  margin: 0px auto 30px auto;
+  /* margin-right: 20px;
+  margin-bottom: 30px; */
 }
 
 .card-content-2 {
@@ -20,12 +20,12 @@
 .card-image-2 {
   border-radius: 10px;
   /* height: 330px; */
-  width: min(30vw, 300px);
+  width: 300px;
 }
 
 .card-vid-2 {
   border-radius: 10px;
-  width: min(30vw, 300px);
+  width: 300px;
   object-fit: cover;
 }
 

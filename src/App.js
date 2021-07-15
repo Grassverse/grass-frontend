@@ -18,12 +18,15 @@ const App = () => {
         id
         uri
         owner
-        artist
+        creator
+        sale {
+          id
+          price
+        }
       }
     }`,
       })
       .then((res) => {
-        // console.log(res);
         setNfts(res.data.data.nftentities);
       })
       .catch((err) => {
