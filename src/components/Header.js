@@ -122,7 +122,7 @@ const useStyles = makeStyles(() => ({
 
 let nftCount = -1;
 
-const Header = () => {
+const Header = ({ updateUser }) => {
   const classes = useStyles();
   const navigate = useNavigate();
 
@@ -194,9 +194,9 @@ const Header = () => {
     }
   };
 
-  const getCode = (address) => {
-    return web3.eth.getCode(address);
-  };
+  // const getCode = (address) => {
+  //   return web3.eth.getCode(address);
+  // };
 
   useEffect(() => {
     if (contract) {
@@ -205,16 +205,21 @@ const Header = () => {
     }
   }, [contract]);
 
-  const runExample = async () => {
-    nftCount = await contract.methods.getCurrentCount().call();
-
-    for (var i = 1; i <= nftCount; i++) {
-      const nft = await contract.methods.getNft(i).call();
-      setNfts((nfts) => [...nfts, nft]);
-      // this.setState({
-      //   nfts: [...this.state.nfts, nft],
-      // });
+  useEffect(() => {
+    if (accounts && accounts.length > 0) {
+      updateUser(accounts[0]);
     }
+  }, [accounts]);
+
+  const runExample = async () => {
+    // nftCount = await contract.methods.getCurrentCount().call();
+    // for (var i = 1; i <= nftCount; i++) {
+    //   const nft = await contract.methods.getNft(i).call();
+    //   setNfts((nfts) => [...nfts, nft]);
+    // this.setState({
+    //   nfts: [...this.state.nfts, nft],
+    // });
+    // }
     // console.log("nfts : ", this.state.nfts);
     //const accounts = await web3.eth.getAccounts();
     // contract.methods.balanceOf(account).call((err, bal) => {

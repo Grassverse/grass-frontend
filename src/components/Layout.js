@@ -3,10 +3,10 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 import Header from "../components/Header";
 
-const Layout = ({ nfts }) => {
+const Layout = ({ nfts, updateUser }) => {
   return (
     <div>
-      <Header />
+      <Header updateUser={updateUser} />
       <Outlet />
     </div>
   );

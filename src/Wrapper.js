@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 import { useRoutes } from "react-router-dom";
 
@@ -9,7 +9,13 @@ import Footer from "./components/Footer";
 import { Container } from "@material-ui/core";
 
 const Wrapper = ({ nfts }) => {
-  const routing = useRoutes(setPropsToRoutes(nfts));
+  const [user, setUser] = useState(null);
+
+  const updateUser = (acc) => {
+    setUser(acc);
+  };
+
+  const routing = useRoutes(setPropsToRoutes(nfts, user, updateUser));
 
   //   if (nfts)
   //     return (
