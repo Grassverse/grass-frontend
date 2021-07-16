@@ -6,12 +6,20 @@ import NftPage from "./components/NftPage/NftPage";
 import CreateNft from "./components/CreateNft/CreateNft";
 import Profile from "./components/Profile/Profile";
 
-const setPropsToRoutes = (nfts, user, updateUser) => {
+const setPropsToRoutes = (
+  nfts,
+  user,
+  updateUser,
+  contracts,
+  updateContracts
+) => {
   if (user)
     return [
       {
         path: "/",
-        element: <Layout nfts={nfts} updateUser={updateUser} />,
+        element: (
+          <Layout updateUser={updateUser} updateContracts={updateContracts} />
+        ),
         children: [
           {
             path: "/",
@@ -19,7 +27,7 @@ const setPropsToRoutes = (nfts, user, updateUser) => {
           },
           {
             path: "/nft/:id",
-            element: <NftPage nfts={nfts} />,
+            element: <NftPage user={user} contracts={contracts} />,
           },
           {
             path: "/create-nft",
@@ -40,7 +48,13 @@ const setPropsToRoutes = (nfts, user, updateUser) => {
   return [
     {
       path: "/",
-      element: <Layout nfts={nfts} updateUser={updateUser} />,
+      element: (
+        <Layout
+          nfts={nfts}
+          updateUser={updateUser}
+          updateContracts={updateContracts}
+        />
+      ),
       children: [
         {
           path: "/",
@@ -48,7 +62,7 @@ const setPropsToRoutes = (nfts, user, updateUser) => {
         },
         {
           path: "/nft/:id",
-          element: <NftPage nfts={nfts} />,
+          element: <NftPage contracts={contracts} />,
         },
         {
           path: "/create-nft",

@@ -4,10 +4,7 @@ import "./NftPage.css";
 import { CONTRACT_ADDRESS } from "../../config";
 import CustomCard from "./CustomCard";
 
-import Web3 from "web3";
-
 import { Button, Grid } from "@material-ui/core";
-
 import OpenInNewIcon from "@material-ui/icons/OpenInNew";
 import CheckCircleOutlineRoundedIcon from "@material-ui/icons/CheckCircleOutlineRounded";
 
@@ -15,7 +12,10 @@ import { useNavigate } from "react-router-dom";
 
 import axios from "axios";
 
-const NftPage = () => {
+import getWeb3 from "../../getWeb3";
+import Web3 from "web3";
+
+const NftPage = ({ user, contracts }) => {
   const navigate = useNavigate();
 
   const [nft, setNft] = useState(null);
@@ -147,6 +147,31 @@ const NftPage = () => {
     getTransactionHistory(id);
   }, []);
 
+  useEffect(() => {
+    if (contracts) {
+      console.log(contracts[1].methods);
+    }
+  }, [contracts]);
+
+  const buyNft = async () => {
+    const escContract = contracts[1];
+
+    console.log({ nft, user });
+
+    escContract.methods
+      .buySaleToken(nft.id.substr(2))
+      .send({
+        from: user,
+        value: nft.sale.price,
+      })
+      .then((res) => {
+        console.log("Success", res);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
   return (
     <Grid container style={{ display: "flex", margin: "30px 0px" }}>
       <CustomCard url={nft ? nft.uri : ""} />
@@ -229,6 +254,9 @@ const NftPage = () => {
                     fontWeight: "600",
                     padding: "8px 40px",
                     margin: "10px 0px 0px 0px",
+                  }}
+                  onClick={async () => {
+                    await buyNft();
                   }}
                 >
                   Buy Now

@@ -3,7 +3,12 @@ import React, { useState, useEffect } from "react";
 
 import getWeb3 from "../getWeb3";
 import Web3 from "web3";
-import { CONTRACT_ABI, CONTRACT_ADDRESS } from "../config";
+import {
+  CONTRACT_ABI,
+  CONTRACT_ADDRESS,
+  ESCROW_CONTRACT_ADDRESS,
+  ESCROW_CONTRACT_ABI,
+} from "../config";
 
 import logo from "../assets/images/logo/logo_g.png";
 
@@ -122,7 +127,7 @@ const useStyles = makeStyles(() => ({
 
 let nftCount = -1;
 
-const Header = ({ updateUser }) => {
+const Header = ({ updateUser, updateContracts }) => {
   const classes = useStyles();
   const navigate = useNavigate();
 
@@ -155,6 +160,7 @@ const Header = ({ updateUser }) => {
     try {
       // Get network provider and web3 instance.
       const web3 = await getWeb3();
+
       // let web3;
       // if(window.ethereum)
       // {
@@ -173,7 +179,15 @@ const Header = ({ updateUser }) => {
       //const deployedNetwork = SimpleStorageContract.networks[networkId];
       var abi = CONTRACT_ABI;
       var contractAddress = CONTRACT_ADDRESS;
-      const instance = new web3.eth.Contract(abi, contractAddress);
+      const nftInstance = new web3.eth.Contract(abi, contractAddress);
+
+      const escrowInstance = new web3.eth.Contract(
+        ESCROW_CONTRACT_ABI,
+        ESCROW_CONTRACT_ADDRESS
+      );
+
+      updateContracts([nftInstance, escrowInstance]);
+
       // new web3.eth.Contract(
       //   SimpleStorageContract.abi,
       //   deployedNetwork && deployedNetwork.address,
@@ -184,7 +198,7 @@ const Header = ({ updateUser }) => {
       // this.setState({ web3, accounts, contract: instance }, this.runExample);
       setWeb3(web3);
       setAccounts(accounts);
-      setContract(instance);
+      setContract(nftInstance);
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(

@@ -10,12 +10,19 @@ import { Container } from "@material-ui/core";
 
 const Wrapper = ({ nfts }) => {
   const [user, setUser] = useState(null);
+  const [contracts, setContracts] = useState(null);
+
+  const updateContracts = (contr) => {
+    setContracts(contr);
+  };
 
   const updateUser = (acc) => {
     setUser(acc);
   };
 
-  const routing = useRoutes(setPropsToRoutes(nfts, user, updateUser));
+  const routing = useRoutes(
+    setPropsToRoutes(nfts, user, updateUser, contracts, updateContracts)
+  );
 
   //   if (nfts)
   //     return (
