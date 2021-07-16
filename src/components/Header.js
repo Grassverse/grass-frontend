@@ -27,6 +27,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import PersonIcon from "@material-ui/icons/Person";
+import EditOutlinedIcon from "@material-ui/icons/EditOutlined";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 
 const StyledMenu = withStyles({
@@ -199,6 +200,8 @@ const Header = ({ updateUser, updateContracts }) => {
       setWeb3(web3);
       setAccounts(accounts);
       setContract(nftInstance);
+
+      sessionStorage.setItem("connected", "true");
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -208,9 +211,15 @@ const Header = ({ updateUser, updateContracts }) => {
     }
   };
 
-  // const getCode = (address) => {
-  //   return web3.eth.getCode(address);
-  // };
+  const checkSessionStorage = () => {
+    if (typeof Storage !== undefined) {
+      if (sessionStorage.getItem("connected") === "true") connectWeb3();
+    }
+  };
+
+  useEffect(() => {
+    checkSessionStorage();
+  }, []);
 
   useEffect(() => {
     if (contract) {
@@ -341,6 +350,26 @@ const Header = ({ updateUser, updateContracts }) => {
                   </ListItemIcon>
                 </StyledMenuItem>
                 <StyledMenuItem>
+                  <StyledListItemText
+                    primary="Edit Profile"
+                    style={{ fontFamily: "AirbnbCereal" }}
+                  />
+                  <ListItemIcon style={{ justifyContent: "flex-end" }}>
+                    <EditOutlinedIcon fontSize="small" />
+                  </ListItemIcon>
+                </StyledMenuItem>
+                <StyledMenuItem
+                  onClick={() => {
+                    setStatus(0);
+
+                    sessionStorage.removeItem("connected");
+                    updateUser(null);
+                    updateContracts(null);
+                    setStatus(-1);
+
+                    handleClose();
+                  }}
+                >
                   <StyledListItemText
                     primary="Disconnect"
                     style={{ fontFamily: "AirbnbCereal" }}

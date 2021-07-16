@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 
 import axios from "axios";
 
-const CustomCard = ({ url, onClick }) => {
+const CustomCard = ({ url, onClick, updateImageUri }) => {
   const [image, setImage] = useState(true);
   const [source, setSource] = useState("");
 
@@ -28,9 +28,11 @@ const CustomCard = ({ url, onClick }) => {
       axios
         .get(`https://ipfs.io/ipfs/${url}`)
         .then((res) => {
-          loadMedia(
-            `https://ipfs.io/ipfs/${res.data.image.split("ipfs://")[1]}`
-          );
+          const uri = `https://ipfs.io/ipfs/${
+            res.data.image.split("ipfs://")[1]
+          }`;
+          updateImageUri(uri);
+          loadMedia(uri);
         })
         .catch((err) => {
           console.log(err);
