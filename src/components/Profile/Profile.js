@@ -30,7 +30,7 @@ const Profile = ({ user }) => {
     axios
       .post("https://api.thegraph.com/subgraphs/name/swapnil1023/grass3", {
         query: `{
-          nftentities(where: {creator: "${user}"}) {
+          nftentities(where: {creator: "${user.toLowerCase()}"}) {
             name
             id
             uri
@@ -52,7 +52,7 @@ const Profile = ({ user }) => {
     axios
       .post("https://api.thegraph.com/subgraphs/name/swapnil1023/grass3", {
         query: `{
-          nftentities(where: {owner: "${user}"}) {
+          nftentities(where: {owner: "${user.toLowerCase()}"}) {
             name
             description
             id

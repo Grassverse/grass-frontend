@@ -5,6 +5,7 @@ import Home from "./components/Home/Home";
 import NftPage from "./components/NftPage/NftPage";
 import CreateNft from "./components/CreateNft/CreateNft";
 import Profile from "./components/Profile/Profile";
+import EditProfile from "./components/EditProfile/EditProfile";
 
 const setPropsToRoutes = (
   nfts,
@@ -36,6 +37,10 @@ const setPropsToRoutes = (
           {
             path: "/profile",
             element: <Profile user={user} />,
+          },
+          {
+            path: "/edit-profile",
+            element: <EditProfile user={user} />,
           },
           {
             path: "*",

@@ -349,7 +349,12 @@ const Header = ({ updateUser, updateContracts }) => {
                     <PersonIcon fontSize="small" />
                   </ListItemIcon>
                 </StyledMenuItem>
-                <StyledMenuItem>
+                <StyledMenuItem
+                  onClick={() => {
+                    handleClose();
+                    navigate("/edit-profile");
+                  }}
+                >
                   <StyledListItemText
                     primary="Edit Profile"
                     style={{ fontFamily: "AirbnbCereal" }}
