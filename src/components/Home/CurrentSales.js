@@ -87,6 +87,9 @@ const CurrentSales = () => {
             id
             uri
             owner
+            creator{
+              id
+            }
             sale {
               id
               price

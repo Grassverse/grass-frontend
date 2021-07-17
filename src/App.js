@@ -18,7 +18,9 @@ const App = () => {
         id
         uri
         owner
-        creator
+        creator{
+          id
+        }
         sale {
           id
           price
@@ -27,6 +29,7 @@ const App = () => {
     }`,
       })
       .then((res) => {
+        // console.log(res.data.data.nftentities);
         setNfts(res.data.data.nftentities);
       })
       .catch((err) => {

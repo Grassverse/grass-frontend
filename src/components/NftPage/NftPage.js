@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 import polygon from "../../assets/images/icons/polygon-matic.png";
 import cube from "../../assets/images/icons/cube-logo.png";
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   icon: {
     // height: "40px",
     // width: "40px",
@@ -34,7 +34,49 @@ const useStyles = makeStyles(() => ({
       backgroundColor: "rgb(240, 240, 240)",
     },
   },
+  creator: {
+    [theme.breakpoints.up("xs")]: {
+      justifyContent: "center",
+    },
+    [theme.breakpoints.up("sm")]: {
+      justifyContent: "flex-end",
+    },
+  },
 }));
+
+const getMonth = (mon) => {
+  if (mon === 0) return "Jan";
+  if (mon === 1) return "Feb";
+  if (mon === 2) return "Mar";
+  if (mon === 3) return "Apr";
+  if (mon === 4) return "May";
+  if (mon === 5) return "June";
+  if (mon === 6) return "July";
+  if (mon === 7) return "Aug";
+  if (mon === 8) return "Sept";
+  if (mon === 9) return "Oct";
+  if (mon === 10) return "Nov";
+  if (mon === 11) return "Dec";
+};
+
+const getTime = (time) => {
+  return (
+    time.split(":")[0] + ":" + time.split(":")[1] + " " + time.split(" ")[1]
+  );
+};
+
+const getTimeString = (time) => {
+  let date = new Date(time * 1000);
+  return (
+    getMonth(date.getMonth()) +
+    " " +
+    date.getDate() +
+    ", " +
+    date.getFullYear() +
+    " at " +
+    getTime(date.toLocaleTimeString())
+  );
+};
 
 const POA = ({ id, uri, imgUri }) => {
   const classes = useStyles();
@@ -99,6 +141,188 @@ const POA = ({ id, uri, imgUri }) => {
   );
 };
 
+const HistCard = ({ el }) => {
+  const [image, setImage] = useState(
+    "https://marketplacemedias.fra1.digitaloceanspaces.com/5DqWHNhop6ZLWTJmdBzGjtVLnrH6AaEoN2k4WDkWaWTUsu7U"
+  );
+  const [message, setMessage] = useState("");
+  const [name, setName] = useState("");
+
+  const checkTransaction = async (from, to) => {
+    let res, pers;
+    if (from === "0x0000000000000000000000000000000000000000") {
+      res = "Minted by";
+      pers = to;
+    } else if (from === ESCROW_CONTRACT_ADDRESS.toLowerCase()) {
+      res = "Bought by";
+      pers = to;
+    } else if (to === ESCROW_CONTRACT_ADDRESS.toLowerCase()) {
+      res = "Listed by";
+      pers = from;
+    } else {
+      res = "Ownership transferred to";
+      pers = to;
+    }
+
+    setMessage(res);
+
+    await axios
+      .get(`/api/users/${pers}`)
+      .then((res) => {
+        const data = res.data.name;
+        if (data && data.trim() !== "") setName(data);
+        else setName(pers.substr(0, 6) + "..." + pers.substr(-4));
+
+        if (res.data.dp && res.data.dp.trim() !== "") setImage(res.data.dp);
+      })
+      .catch((err) => {
+        console.log(err);
+        setName(pers.substr(0, 6) + "..." + pers.substr(-4));
+      });
+  };
+
+  useEffect(() => {
+    checkTransaction(el.from, el.to);
+  }, []);
+
+  return (
+    <div
+      className="history-el"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        margin: "10px 0px",
+        position: "relative",
+      }}
+      onClick={() => {
+        window.open(`https://ropsten.etherscan.io/tx/${el.id.split("-")[0]}`);
+      }}
+    >
+      <CheckCircleOutlineRoundedIcon />
+      <img
+        src={image}
+        style={{
+          width: "60px",
+          height: "60px",
+          margin: "0px 10px",
+          borderRadius: "50%",
+          objectFit: "cover",
+        }}
+        alt="user-avatar"
+      />
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          textAlign: "left",
+          fontSize: "13px",
+          fontWeight: "900",
+          fontFamily: "AirbnbCerealBook",
+        }}
+      >
+        <span
+          style={{
+            fontFamily: "AirbnbCerealLight",
+          }}
+        >
+          {message}
+          &nbsp;
+          <b
+            style={{
+              fontFamily: "AirbnbCereal",
+              color: "rgb(116, 23, 234)",
+            }}
+          >
+            {name}
+          </b>
+        </span>
+        <span style={{ color: "grey" }}>{getTimeString(el.time)}</span>
+      </div>
+      <div className="open-icon">
+        <OpenInNewIcon style={{ color: "rgb(80,80,80)" }} />
+      </div>
+    </div>
+  );
+};
+
+const CreatorCard = ({ id }) => {
+  const classes = useStyles();
+
+  const [img, setImg] = useState(null);
+  const [name, setName] = useState(null);
+  const [bio, setBio] = useState(null);
+
+  useEffect(() => {
+    axios
+      .get(`/api/users/${id}`)
+      .then((res) => {
+        setImg(res.data.dp);
+        setName(res.data.name);
+        setBio(res.data.bio);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
+
+  return (
+    <div style={{ margin: "40px 0px", textAlign: "left" }}>
+      <h3>Creator</h3>
+      <hr />
+      <Grid
+        container
+        style={{ display: "flex", justifyContent: "space-between" }}
+      >
+        <Grid
+          item
+          xs={12}
+          sm={6}
+          style={{ display: "flex", alignItems: "center" }}
+        >
+          <img
+            src={img}
+            style={{
+              borderRadius: "50%",
+              height: "150px",
+              width: "150px",
+              objectFit: "cover",
+            }}
+            alt="creator"
+          />
+          <h4
+            style={{
+              fontSize: "25px",
+              fontFamily: "AirbnbCerealBook",
+              marginLeft: "30px",
+            }}
+          >
+            {name}
+          </h4>
+        </Grid>
+        <Grid
+          item
+          xs={12}
+          sm={6}
+          className={classes.creator}
+          style={{
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <p
+            style={{
+              color: "grey",
+              wordBreak: "break-word",
+            }}
+          >
+            {bio}
+          </p>
+        </Grid>
+      </Grid>
+    </div>
+  );
+};
+
 const NftPage = ({ user, contracts }) => {
   const navigate = useNavigate();
 
@@ -120,7 +344,9 @@ const NftPage = ({ user, contracts }) => {
           id
           uri
           owner
-          creator
+          creator{
+            id
+          }
           sale {
             id
             price
@@ -170,7 +396,6 @@ const NftPage = ({ user, contracts }) => {
             });
           });
 
-          console.log(hist);
           setHistory(hist);
         }
       })
@@ -179,68 +404,17 @@ const NftPage = ({ user, contracts }) => {
       });
   };
 
-  const checkTransaction = (from, to) => {
-    let res, pers;
-    if (from === "0x0000000000000000000000000000000000000000") {
-      res = "Minted by";
-      pers = to;
-    } else if (from === ESCROW_CONTRACT_ADDRESS.toLowerCase()) {
-      res = "Bought by";
-      pers = to;
-    } else if (to === ESCROW_CONTRACT_ADDRESS.toLowerCase()) {
-      res = "Listed by";
-      pers = from;
-    } else {
-      res = "Ownership transferred to";
-      pers = to;
-    }
-    return [res, pers.substr(0, 6) + "..." + pers.substr(-4)];
-  };
-
-  const getMonth = (mon) => {
-    if (mon === 0) return "Jan";
-    if (mon === 1) return "Feb";
-    if (mon === 2) return "Mar";
-    if (mon === 3) return "Apr";
-    if (mon === 4) return "May";
-    if (mon === 5) return "June";
-    if (mon === 6) return "July";
-    if (mon === 7) return "Aug";
-    if (mon === 8) return "Sept";
-    if (mon === 9) return "Oct";
-    if (mon === 10) return "Nov";
-    if (mon === 11) return "Dec";
-  };
-
-  const getTime = (time) => {
-    return (
-      time.split(":")[0] + ":" + time.split(":")[1] + " " + time.split(" ")[1]
-    );
-  };
-
-  const getTimeString = (time) => {
-    let date = new Date(time * 1000);
-    return (
-      getMonth(date.getMonth()) +
-      " " +
-      date.getDate() +
-      ", " +
-      date.getFullYear() +
-      " at " +
-      getTime(date.toLocaleTimeString())
-    );
-  };
-
   const checkPOA = () => {
     const left = document.getElementById("left-part-nft");
     const right = document.getElementById("right-part-nft");
 
-    console.log(left.offsetTop, right.offsetTop);
+    if (!left || !right) return;
+    // console.log(left.offsetTop, right.offsetTop);
 
     let large = document.getElementById("larger-poa");
     let small = document.getElementById("smaller-poa");
 
-    console.log(large, small);
+    // console.log(large, small);
     if (left.offsetTop === right.offsetTop && large.style.display === "none") {
       large.style.display = "block";
       small.style.display = "none";
@@ -251,7 +425,6 @@ const NftPage = ({ user, contracts }) => {
       small.style.display = "block";
       large.style.display = "none";
     }
-    console.log(large, small);
   };
 
   useEffect(() => {
@@ -275,19 +448,11 @@ const NftPage = ({ user, contracts }) => {
     };
   }, []);
 
-  useEffect(() => {
-    if (contracts) {
-      console.log(contracts[1].methods);
-    }
-  }, [contracts]);
-
   const buyNft = async () => {
     const escContract = contracts[1];
 
-    console.log({ nft, user });
-
     escContract.methods
-      .buySaleToken(nft.id.substr(2))
+      .buySaleToken(Web3.utils.hexToNumberString(nft.id))
       .send({
         from: user,
         value: nft.sale.price,
@@ -307,11 +472,12 @@ const NftPage = ({ user, contracts }) => {
       .isApprovedForAll(user, ESCROW_CONTRACT_ADDRESS)
       .call();
 
+    console.log(Web3.utils.hexToNumberString(nft.id));
     const approved = await nftContract.methods
-      .getApproved(nft.id.substr(2))
+      .getApproved(Web3.utils.hexToNumberString(nft.id))
       .call();
 
-    console.log({ approveForAll, approved });
+    // console.log({ approveForAll, approved });
 
     return approveForAll || approved === ESCROW_CONTRACT_ADDRESS;
   };
@@ -326,6 +492,8 @@ const NftPage = ({ user, contracts }) => {
       const price = prompt("Enter price");
       console.log(price);
 
+      if (!price || price.trim() === "") return;
+
       escContract.methods
         .createSale(nft.id.substr(2), Web3.utils.toWei(price, "ether"))
         .send({ from: user })
@@ -339,7 +507,10 @@ const NftPage = ({ user, contracts }) => {
       const status = window.confirm("Approve your NFT for selling");
       if (status) {
         nftContract.methods
-          .approve(ESCROW_CONTRACT_ADDRESS, nft.id.substr(2))
+          .approve(
+            ESCROW_CONTRACT_ADDRESS,
+            Web3.utils.hexToNumberString(nft.id)
+          )
           .send({
             from: user,
           })
@@ -355,217 +526,168 @@ const NftPage = ({ user, contracts }) => {
   };
 
   return (
-    <Grid container style={{ display: "flex", margin: "30px 0px" }}>
-      <div
-        style={{ marginLeft: "auto", marginRight: "auto" }}
-        id="left-part-nft"
-      >
-        <CustomCard url={nft ? nft.uri : ""} updateImageUri={updateImageUri} />
-        <div id="larger-poa" style={{ display: "none" }}>
-          {nft ? <POA id={nft.id} uri={nft.uri} imgUri={imgUri} /> : null}
-        </div>
-      </div>
-      <Grid
-        item
-        md={7}
-        xs={10}
-        style={{ margin: "0px auto 30px auto" }}
-        id="right-part-nft"
-      >
+    <div>
+      <Grid container style={{ display: "flex", margin: "30px 0px" }}>
         <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
+          style={{ marginLeft: "auto", marginRight: "auto" }}
+          id="left-part-nft"
         >
-          <h1
+          <CustomCard
+            url={nft ? nft.uri : ""}
+            updateImageUri={updateImageUri}
+          />
+          <div id="larger-poa" style={{ display: "none" }}>
+            {nft ? <POA id={nft.id} uri={nft.uri} imgUri={imgUri} /> : null}
+          </div>
+        </div>
+        <Grid
+          item
+          md={7}
+          xs={10}
+          style={{ margin: "0px auto 30px auto" }}
+          id="right-part-nft"
+        >
+          <div
             style={{
-              letterSpacing: "1px",
-              textAlign: "left",
-              padding: "0px 0px",
-              margin: "0px 0px 10px 0px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
             }}
           >
-            {nft ? nft.name : " "}
-          </h1>
-          {nft ? (
-            nft.sale ? (
-              <span
-                style={{
-                  backgroundColor: "rgb(116, 23, 234)",
-                  color: "white",
-                  padding: "3px 5px",
-                  borderRadius: "5px",
-                }}
-              >
-                ON&nbsp;&nbsp;SALE
-              </span>
-            ) : null
-          ) : null}
-        </div>
-        <hr />
-        <div
-          style={{
-            fontFamily: "AirbnbCerealBook",
-            textAlign: "left",
-            fontSize: "14px",
-            lineHeight: "26px",
-            margin: "35px 0px 30px 0px",
-          }}
-        >
-          {nft
-            ? nft.description
-                .toString()
-                .split("\\n")
-                .map((el, index) => {
-                  if (
-                    index ===
-                    nft.description.toString().split("\\n").length - 1
-                  )
-                    return <div key={"element" + index}>{el}</div>;
-                  return (
-                    <div key={"element" + index}>
-                      {el}
-                      <br />
-                    </div>
-                  );
-                })
-            : " "}
-        </div>
-        {console.log(nft)}
-        {nft ? (
-          nft.sale ? (
-            nft.owner !== user.toLowerCase() ? (
-              <div style={{ fontSize: "24px" }}>
-                <b>Price&nbsp;:&nbsp;</b>
-                {Web3.utils.fromWei(nft.sale.price, "ether")}&nbsp;ETH
-                {nft.sale.owner !== user.toLowerCase() ? (
-                  <div>
-                    <Button
-                      style={{
-                        backgroundColor: "rgb(116, 23, 234)",
-                        color: "white",
-                        textTransform: "none",
-                        borderRadius: "26px",
-                        // width: "120px",
-                        // margin: "4px",
-                        fontWeight: "600",
-                        padding: "8px 40px",
-                        margin: "10px 0px 0px 0px",
-                      }}
-                      onClick={async () => {
-                        await buyNft();
-                      }}
-                    >
-                      Buy Now
-                    </Button>
-                  </div>
-                ) : null}
-              </div>
-            ) : null
-          ) : user && nft.owner === user.toLowerCase() ? (
-            <div style={{ fontSize: "24px" }}>
-              <div>
-                <Button
+            <h1
+              style={{
+                letterSpacing: "1px",
+                textAlign: "left",
+                padding: "0px 0px",
+                margin: "0px 0px 10px 0px",
+              }}
+            >
+              {nft ? nft.name : " "}
+            </h1>
+            {nft ? (
+              nft.sale ? (
+                <span
                   style={{
                     backgroundColor: "rgb(116, 23, 234)",
                     color: "white",
-                    textTransform: "none",
-                    borderRadius: "26px",
-                    // width: "120px",
-                    // margin: "4px",
-                    fontWeight: "600",
-                    padding: "8px 40px",
-                    margin: "10px 0px 0px 0px",
-                  }}
-                  onClick={async () => {
-                    sellNft();
+                    padding: "3px 5px",
+                    borderRadius: "5px",
                   }}
                 >
-                  Sell
-                </Button>
-              </div>
-            </div>
-          ) : null
-        ) : null}
-        <div id="smaller-poa" style={{ display: "none" }}>
-          {nft ? <POA id={nft.id} uri={nft.uri} imgUri={imgUri} /> : null}
-        </div>
-        <div style={{ display: "flex", marginTop: "30px" }}>
-          <div>
-            <h4 style={{ margin: "0px 20px 0px 0px" }}>Activity</h4>
+                  ON&nbsp;&nbsp;SALE
+                </span>
+              ) : null
+            ) : null}
           </div>
-          <div style={{ width: "100%", display: "flex", alignItems: "center" }}>
-            <div style={{ width: "100%" }}>
-              <hr style={{ width: "100%" }} />
-            </div>
+          <hr />
+          <div
+            style={{
+              fontFamily: "AirbnbCerealBook",
+              textAlign: "left",
+              fontSize: "14px",
+              lineHeight: "26px",
+              margin: "35px 0px 30px 0px",
+            }}
+          >
+            {nft
+              ? nft.description
+                  .toString()
+                  .split("\\n")
+                  .map((el, index) => {
+                    if (
+                      index ===
+                      nft.description.toString().split("\\n").length - 1
+                    )
+                      return <div key={"element" + index}>{el}</div>;
+                    return (
+                      <div key={"element" + index}>
+                        {el}
+                        <br />
+                      </div>
+                    );
+                  })
+              : " "}
           </div>
-        </div>
-        {history
-          .slice(0)
-          .reverse()
-          .map((el, index) => (
-            <div
-              key={"owner-" + index}
-              className="history-el"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                margin: "10px 0px",
-                position: "relative",
-              }}
-              onClick={() => {
-                window.open(
-                  `https://ropsten.etherscan.io/tx/${el.id.split("-")[0]}`
-                );
-              }}
-            >
-              <CheckCircleOutlineRoundedIcon />
-              <img
-                src="https://marketplacemedias.fra1.digitaloceanspaces.com/5DqWHNhop6ZLWTJmdBzGjtVLnrH6AaEoN2k4WDkWaWTUsu7U"
-                style={{
-                  width: "60px",
-                  margin: "0px 10px",
-                  borderRadius: "50%",
-                }}
-                alt="user-avatar"
-              />
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  textAlign: "left",
-                  fontSize: "13px",
-                  fontWeight: "900",
-                  fontFamily: "AirbnbCerealBook",
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: "AirbnbCerealLight",
-                  }}
-                >
-                  {checkTransaction(el.from, el.to)[0]}
-                  &nbsp;
-                  <b
+          {nft ? (
+            nft.sale ? (
+              nft.owner !== user.toLowerCase() ? (
+                <div style={{ fontSize: "24px" }}>
+                  <b>Price&nbsp;:&nbsp;</b>
+                  {Web3.utils.fromWei(nft.sale.price, "ether")}&nbsp;ETH
+                  {nft.sale.owner !== user.toLowerCase() ? (
+                    <div>
+                      <Button
+                        style={{
+                          backgroundColor: "rgb(116, 23, 234)",
+                          color: "white",
+                          textTransform: "none",
+                          borderRadius: "26px",
+                          // width: "120px",
+                          // margin: "4px",
+                          fontWeight: "600",
+                          padding: "8px 40px",
+                          margin: "10px 0px 0px 0px",
+                        }}
+                        onClick={async () => {
+                          await buyNft();
+                        }}
+                      >
+                        Buy Now
+                      </Button>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null
+            ) : user && nft.owner === user.toLowerCase() ? (
+              <div style={{ fontSize: "24px" }}>
+                <div>
+                  <Button
                     style={{
-                      fontFamily: "AirbnbCereal",
-                      color: "rgb(116, 23, 234)",
+                      backgroundColor: "rgb(116, 23, 234)",
+                      color: "white",
+                      textTransform: "none",
+                      borderRadius: "26px",
+                      // width: "120px",
+                      // margin: "4px",
+                      fontWeight: "600",
+                      padding: "8px 40px",
+                      margin: "10px 0px 0px 0px",
+                    }}
+                    onClick={async () => {
+                      sellNft();
                     }}
                   >
-                    {checkTransaction(el.from, el.to)[1]}
-                  </b>
-                </span>
-                <span style={{ color: "grey" }}>{getTimeString(el.time)}</span>
+                    Sell
+                  </Button>
+                </div>
               </div>
-              <div className="open-icon">
-                <OpenInNewIcon style={{ color: "rgb(80,80,80)" }} />
+            ) : null
+          ) : null}
+          <div id="smaller-poa" style={{ display: "none" }}>
+            {nft ? <POA id={nft.id} uri={nft.uri} imgUri={imgUri} /> : null}
+          </div>
+          <div style={{ display: "flex", marginTop: "30px" }}>
+            <div>
+              <h4 style={{ margin: "0px 20px 0px 0px" }}>Activity</h4>
+            </div>
+            <div
+              style={{ width: "100%", display: "flex", alignItems: "center" }}
+            >
+              <div style={{ width: "100%" }}>
+                <hr style={{ width: "100%" }} />
               </div>
             </div>
-          ))}
+          </div>
+          {history
+            .slice(0)
+            .reverse()
+            .map((el, index) => (
+              <HistCard el={el} key={"owner-" + index} />
+            ))}
+        </Grid>
       </Grid>
-    </Grid>
+      {nft ? <CreatorCard id={nft.creator.id} /> : null}
+    </div>
   );
 };
 

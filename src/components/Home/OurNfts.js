@@ -46,14 +46,15 @@ const OurNfts = ({ nfts }) => {
   };
 
   const mouseUpHandler = (e) => {
-    if (e.target.id !== "our-nfts") {
-      if (isDragged) {
-        e.target.addEventListener("click", preventClick);
-      } else {
-        e.target.removeEventListener("click", preventClick);
-      }
-    }
-    isDragged = false;
+    // if (e.target.id !== "our-nfts") {
+    //   console.log(isDragged);
+    //   if (isDragged) {
+    //     e.target.addEventListener("click", preventClick);
+    //   } else {
+    //     e.target.removeEventListener("click", preventClick);
+    //   }
+    // }
+    // isDragged = false;
 
     ele.style.removeProperty("user-select");
 
@@ -61,6 +62,7 @@ const OurNfts = ({ nfts }) => {
   };
 
   const mouseDownHandler = (e) => {
+    isDragged = false;
     pos = {
       // The current scroll
       left: ele.scrollLeft,
@@ -97,7 +99,8 @@ const OurNfts = ({ nfts }) => {
               nft={nft}
               left="5/5"
               onClick={() => {
-                navigate(`/nft/${nft.id.substr(2)}`);
+                // console.log(isDragged);
+                if (!isDragged) navigate(`/nft/${nft.id.substr(2)}`);
               }}
             />
           );

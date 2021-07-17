@@ -1,7 +1,7 @@
 import CustomCard from "./CustomCard";
 
 import React, { useState, useEffect } from "react";
-import { makeStyles } from "@material-ui/core";
+import { CircularProgress, makeStyles } from "@material-ui/core";
 
 import pic from "../../assets/images/creators/1.jpg";
 import { useNavigate } from "react-router-dom";
@@ -26,6 +26,9 @@ const Profile = ({ user }) => {
   const [created, setCreated] = useState([]);
   const [owned, setOwned] = useState([]);
 
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
   const getCreatedNfts = () => {
     axios
       .post("https://api.thegraph.com/subgraphs/name/swapnil1023/grass3", {
@@ -40,7 +43,6 @@ const Profile = ({ user }) => {
       })
       .then((res) => {
         const data = res.data.data.nftentities;
-        console.log(data);
         setCreated(data);
       })
       .catch((err) => {
@@ -66,7 +68,6 @@ const Profile = ({ user }) => {
       })
       .then((res) => {
         const data = res.data.data.nftentities;
-        console.log(data);
         setOwned(data);
       })
       .catch((err) => {
@@ -75,9 +76,34 @@ const Profile = ({ user }) => {
   };
 
   useEffect(() => {
-    getCreatedNfts();
-    getOwnedNfts();
+    axios
+      .get(`/api/users/${user}`)
+      .then((res) => {
+        setProfile(res.data);
+        setLoading(false);
+        getCreatedNfts();
+        getOwnedNfts();
+      })
+      .catch((err) => {
+        console.log(err.response.data);
+        setLoading(false);
+        navigate("/edit-profile");
+      });
   }, []);
+
+  if (loading)
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "300px",
+        }}
+      >
+        <CircularProgress />
+      </div>
+    );
 
   return (
     <div style={{ textAlign: "left", marginBottom: "60px" }}>
@@ -88,7 +114,7 @@ const Profile = ({ user }) => {
           style={{ width: "100%", height: "160px", objectFit: "cover" }}
         />
         <img
-          src={pic}
+          src={profile.dp}
           alt="you"
           style={{
             height: "100px",
@@ -97,6 +123,7 @@ const Profile = ({ user }) => {
             transform: "translateY(-50%)",
             margin: "auto",
             border: "6px white solid",
+            objectFit: "cover",
           }}
         />
         <div
@@ -115,7 +142,7 @@ const Profile = ({ user }) => {
               borderRight: "1px solid black",
             }}
           >
-            <h2 style={{ margin: "10px 0px" }}>Zipo</h2>
+            <h2 style={{ margin: "10px 0px" }}>{profile.name}</h2>
           </span>
           <div style={{ width: "50%", textAlign: "left", paddingLeft: "10px" }}>
             <span
@@ -137,10 +164,7 @@ const Profile = ({ user }) => {
             transform: "translateY(-30px)",
           }}
         >
-          <p style={{}}>
-            Lorem Ipsum is simply dummy text of the printing and typesetting
-            industry.
-          </p>
+          <p style={{}}>{profile.bio}</p>
         </div>
       </div>
       <div style={{ userSelect: "none", display: "flex" }}>
@@ -183,7 +207,13 @@ const Profile = ({ user }) => {
       >
         {tab === 0 ? (
           created.length > 0 ? (
-            <div>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                justifyContent: "center",
+              }}
+            >
               {created.map((el, index) => {
                 return (
                   <CustomCard

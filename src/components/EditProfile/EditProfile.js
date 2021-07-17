@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
-import { Button, Grid, makeStyles } from "@material-ui/core";
+import { Button, Grid, makeStyles, CircularProgress } from "@material-ui/core";
+
+import axios from "axios";
 
 const useStyles = makeStyles((theme) => ({
   input: {
@@ -12,6 +14,7 @@ const useStyles = makeStyles((theme) => ({
     margin: "1px",
     resize: "none",
     width: "250px",
+    fontFamily: "AirbnbCerealLight",
     "&:focus": {
       margin: "0px",
       borderWidth: "2px",
@@ -43,16 +46,89 @@ const EditProfile = ({ user }) => {
   const classes = useStyles();
 
   const [selectedFile, setSelectedFile] = useState(null);
+  const [profile, setProfile] = useState(null);
+
+  const [loading, setLoading] = useState(true);
+
+  const nameRef = useRef(null);
+  const imgRef = useRef(null);
+  const emailRef = useRef(null);
+  const bioRef = useRef(null);
+
+  useEffect(() => {
+    axios
+      .get(`/api/users/${user}`)
+      .then((res) => {
+        setProfile(res.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.log(err.response.data);
+        setLoading(false);
+      });
+  }, []);
 
   const onFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      console.log(file.type);
-      if (file.type.startsWith("image") || file.type.startsWith("video"))
-        setSelectedFile(event.target.files[0]);
-      else alert("Upload only Image or Video");
+      if (file.type.startsWith("image")) setSelectedFile(event.target.files[0]);
+      else alert("Upload only Image");
     }
   };
+
+  const validate = () => {
+    return !(
+      nameRef.current.value.trim() === "" ||
+      emailRef.current.value.trim() === "" ||
+      bioRef.current.value.trim() === "" ||
+      !selectedFile
+    );
+  };
+
+  const updateProfile = async () => {
+    if (!validate()) {
+      alert("All fields must be filled");
+      return;
+    }
+    let data = new FormData();
+
+    console.log(
+      nameRef.current.value.trim(),
+      emailRef.current.value.trim(),
+      bioRef.current.value.trim(),
+      selectedFile
+    );
+
+    data.append("name", nameRef.current.value.trim());
+    data.append("image", selectedFile);
+    data.append("email", emailRef.current.value.trim());
+    data.append("bio", bioRef.current.value.trim());
+
+    console.log(data);
+
+    axios
+      .post(`/api/users`, data)
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  if (loading)
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "300px",
+        }}
+      >
+        <CircularProgress />
+      </div>
+    );
 
   return (
     <div style={{ textAlign: "left", marginBottom: "60px" }}>
@@ -65,7 +141,12 @@ const EditProfile = ({ user }) => {
             </Grid>
             <Grid item xs={12} sm={7}>
               <div style={{ border: "0px" }}>
-                <input type="name" className={classes.input} />
+                <input
+                  ref={nameRef}
+                  type="name"
+                  className={classes.input}
+                  defaultValue={profile ? profile.name : ""}
+                />
               </div>
             </Grid>
           </Grid>
@@ -78,6 +159,7 @@ const EditProfile = ({ user }) => {
             <Grid item xs={12} sm={7}>
               <div style={{ border: "0px" }}>
                 <input
+                  ref={imgRef}
                   type="file"
                   id="profile-img"
                   name="img"
@@ -128,7 +210,12 @@ const EditProfile = ({ user }) => {
             </Grid>
             <Grid item xs={12} sm={7}>
               <div style={{ border: "0px" }}>
-                <input type="email" className={classes.input} />
+                <input
+                  ref={emailRef}
+                  type="email"
+                  className={classes.input}
+                  defaultValue={profile ? profile.email : ""}
+                />
               </div>
             </Grid>
           </Grid>
@@ -140,7 +227,13 @@ const EditProfile = ({ user }) => {
             </Grid>
             <Grid item xs={12} sm={7}>
               <div style={{ border: "0px" }}>
-                <textarea rows="3" maxLength="200" className={classes.input} />
+                <textarea
+                  ref={bioRef}
+                  rows="3"
+                  maxLength="200"
+                  className={classes.input}
+                  defaultValue={profile ? profile.bio : ""}
+                />
               </div>
             </Grid>
           </Grid>
@@ -156,6 +249,9 @@ const EditProfile = ({ user }) => {
               padding: "10px 30px",
               fontSize: "16px",
               marginTop: "20px",
+            }}
+            onClick={() => {
+              updateProfile();
             }}
           >
             Update

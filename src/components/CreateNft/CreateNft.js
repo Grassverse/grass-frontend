@@ -58,7 +58,6 @@ const CreateNft = () => {
   const onFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      console.log(file.type);
       if (file.type.startsWith("image") || file.type.startsWith("video"))
         setSelectedFile(event.target.files[0]);
       else alert("Upload only Image or Video");

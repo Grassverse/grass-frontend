@@ -5,13 +5,13 @@ import Web3 from "web3";
 
 import { Avatar } from "@material-ui/core";
 
-import crtr from "../../assets/images/creators/1.jpg";
-
 import axios from "axios";
 
 const CustomCard = ({ url, onClick, nft }) => {
   const [image, setImage] = useState(true);
   const [source, setSource] = useState("");
+
+  const [creator, setCreator] = useState(null);
 
   const loadMedia = (src) => {
     setSource(src);
@@ -42,6 +42,22 @@ const CustomCard = ({ url, onClick, nft }) => {
         });
     }
   };
+
+  const getCreator = () => {
+    console.log(nft);
+    axios
+      .get(`/api/users/${nft.creator.id}`)
+      .then((res) => {
+        if (res.data.dp) setCreator(res.data.dp);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  useEffect(() => {
+    if (nft && nft.creator) getCreator();
+  }, [nft]);
 
   useEffect(() => {
     checkUrl();
@@ -74,7 +90,7 @@ const CustomCard = ({ url, onClick, nft }) => {
         )}
         {nft.sale ? <span className="left-one">SALE</span> : null}
         <span className="right-one">
-          <Avatar src={crtr}></Avatar>
+          {creator ? <Avatar src={creator}></Avatar> : null}
         </span>
         <div className="hover-card">
           <div

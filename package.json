@@ -1,6 +1,7 @@
 {
   "name": "platform",
   "version": "0.1.0",
+  "proxy": "http://localhost:3000",
   "private": true,
   "dependencies": {
     "@material-ui/core": "^4.11.4",
@@ -19,7 +20,7 @@
     "web3": "^1.4.0"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "set PORT=3001&&react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
