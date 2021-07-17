@@ -187,7 +187,7 @@ const Profile = ({ user }) => {
               {created.map((el, index) => {
                 return (
                   <CustomCard
-                    key={"owned-" + index}
+                    key={"created-" + index}
                     url={el.uri}
                     nft={el}
                     onClick={() => {
