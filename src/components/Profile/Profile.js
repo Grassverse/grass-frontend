@@ -35,9 +35,13 @@ const Profile = ({ user }) => {
         query: `{
           nftentities(where: {creator: "${user.toLowerCase()}"}) {
             name
+            description
             id
             uri
             owner
+            creator{
+              id
+            }
           }
         }`,
       })
