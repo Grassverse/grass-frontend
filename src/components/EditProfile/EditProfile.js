@@ -2,7 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 
 import { Button, Grid, makeStyles, CircularProgress } from "@material-ui/core";
 
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+
+import getUser from "../../db";
 
 const useStyles = makeStyles((theme) => ({
   input: {
@@ -44,6 +47,7 @@ const useStyles = makeStyles((theme) => ({
 
 const EditProfile = ({ user }) => {
   const classes = useStyles();
+  const navigate = useNavigate();
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -56,16 +60,26 @@ const EditProfile = ({ user }) => {
   const bioRef = useRef(null);
 
   useEffect(() => {
-    axios
-      .get(`/api/users/${user}`)
+    getUser(user)
       .then((res) => {
-        setProfile(res.data);
+        setProfile(res);
         setLoading(false);
       })
       .catch((err) => {
-        console.log(err.response.data);
+        console.log(err);
         setLoading(false);
       });
+
+    // axios
+    //   .get(`/api/users/${user}`)
+    //   .then((res) => {
+    //     setProfile(res.data);
+    //     setLoading(false);
+    //   })
+    //   .catch((err) => {
+    //     console.log(err.response.data);
+    //     setLoading(false);
+    //   });
   }, []);
 
   const onFileChange = (event) => {
@@ -81,7 +95,7 @@ const EditProfile = ({ user }) => {
       nameRef.current.value.trim() === "" ||
       emailRef.current.value.trim() === "" ||
       bioRef.current.value.trim() === "" ||
-      !selectedFile
+      !(selectedFile || (profile.dp && profile.dp.trim() !== ""))
     );
   };
 
@@ -90,26 +104,31 @@ const EditProfile = ({ user }) => {
       alert("All fields must be filled");
       return;
     }
+    setLoading(true);
+
     let data = new FormData();
 
-    console.log(
-      nameRef.current.value.trim(),
-      emailRef.current.value.trim(),
-      bioRef.current.value.trim(),
-      selectedFile
-    );
-
     data.append("name", nameRef.current.value.trim());
-    data.append("image", selectedFile);
+    data.append("photo", selectedFile);
     data.append("email", emailRef.current.value.trim());
     data.append("bio", bioRef.current.value.trim());
+    if (
+      profile.dp &&
+      profile.dp !== "" &&
+      profile.dp.includes(user.toLowerCase())
+    ) {
+      data.append(
+        "oldext",
+        profile.dp.split(user.toLowerCase())[1].split("?")[0]
+      );
+    }
 
     console.log(data);
 
     axios
-      .post(`/api/users`, data)
+      .patch(`/api/users/${user.toLowerCase()}`, data)
       .then((res) => {
-        console.log(res);
+        navigate("/profile");
       })
       .catch((err) => {
         console.log(err);
@@ -161,7 +180,7 @@ const EditProfile = ({ user }) => {
                 <input
                   ref={imgRef}
                   type="file"
-                  id="profile-img"
+                  id="photo"
                   name="img"
                   accept="image/*"
                   style={{ display: "none" }}
@@ -169,7 +188,7 @@ const EditProfile = ({ user }) => {
                     onFileChange(event);
                   }}
                 />
-                <label htmlFor="profile-img" className={classes.label}>
+                <label htmlFor="photo" className={classes.label}>
                   <div
                     style={{
                       borderRadius: "50%",
@@ -185,6 +204,18 @@ const EditProfile = ({ user }) => {
                     {selectedFile ? (
                       <img
                         src={URL.createObjectURL(selectedFile)}
+                        alt="profile-pic"
+                        draggable="false"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          borderRadius: "50%",
+                        }}
+                      />
+                    ) : profile && profile.dp.trim() !== "" ? (
+                      <img
+                        src={profile.dp}
                         alt="profile-pic"
                         draggable="false"
                         style={{

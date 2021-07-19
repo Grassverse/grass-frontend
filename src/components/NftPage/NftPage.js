@@ -11,6 +11,8 @@ import OpenInNewIcon from "@material-ui/icons/OpenInNew";
 import CheckCircleOutlineRoundedIcon from "@material-ui/icons/CheckCircleOutlineRounded";
 import VisibilityOutlinedIcon from "@material-ui/icons/VisibilityOutlined";
 
+import getUser from "../../db";
+
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -95,8 +97,8 @@ const POA = ({ id, uri, imgUri }) => {
         className={classes.icon}
         onClick={() => {
           window.open(
-            `https://ropsten.etherscan.io/token/${CONTRACT_ADDRESS}?a=${id.substr(
-              2
+            `https://ropsten.etherscan.io/token/${CONTRACT_ADDRESS}?a=${Web3.utils.hexToNumberString(
+              id
             )}`
           );
         }}
@@ -142,11 +144,14 @@ const POA = ({ id, uri, imgUri }) => {
 };
 
 const HistCard = ({ el }) => {
+  const navigate = useNavigate();
+
   const [image, setImage] = useState(
     "https://marketplacemedias.fra1.digitaloceanspaces.com/5DqWHNhop6ZLWTJmdBzGjtVLnrH6AaEoN2k4WDkWaWTUsu7U"
   );
   const [message, setMessage] = useState("");
   const [name, setName] = useState("");
+  const [person, setPerson] = useState("");
 
   const checkTransaction = async (from, to) => {
     let res, pers;
@@ -164,21 +169,36 @@ const HistCard = ({ el }) => {
       pers = to;
     }
 
+    setPerson(pers);
+
     setMessage(res);
 
-    await axios
-      .get(`/api/users/${pers}`)
+    getUser(pers)
       .then((res) => {
-        const data = res.data.name;
+        const data = res.name;
         if (data && data.trim() !== "") setName(data);
         else setName(pers.substr(0, 6) + "..." + pers.substr(-4));
 
-        if (res.data.dp && res.data.dp.trim() !== "") setImage(res.data.dp);
+        if (res.dp && res.dp.trim() !== "") setImage(res.dp);
       })
       .catch((err) => {
         console.log(err);
         setName(pers.substr(0, 6) + "..." + pers.substr(-4));
       });
+
+    // await axios
+    //   .get(`/api/users/${pers}`)
+    //   .then((res) => {
+    //     const data = res.data.name;
+    //     if (data && data.trim() !== "") setName(data);
+    //     else setName(pers.substr(0, 6) + "..." + pers.substr(-4));
+
+    //     if (res.data.dp && res.data.dp.trim() !== "") setImage(res.data.dp);
+    //   })
+    //   .catch((err) => {
+    //     console.log(err);
+    //     setName(pers.substr(0, 6) + "..." + pers.substr(-4));
+    //   });
   };
 
   useEffect(() => {
@@ -209,6 +229,11 @@ const HistCard = ({ el }) => {
           objectFit: "cover",
         }}
         alt="user-avatar"
+        onClick={(event) => {
+          event.stopPropagation();
+
+          if (person !== "") navigate(`/profile/${person}`);
+        }}
       />
       <div
         style={{
@@ -247,22 +272,33 @@ const HistCard = ({ el }) => {
 
 const CreatorCard = ({ id }) => {
   const classes = useStyles();
+  const navigate = useNavigate();
 
   const [img, setImg] = useState(null);
   const [name, setName] = useState(null);
   const [bio, setBio] = useState(null);
 
   useEffect(() => {
-    axios
-      .get(`/api/users/${id}`)
+    getUser(id)
       .then((res) => {
-        setImg(res.data.dp);
-        setName(res.data.name);
-        setBio(res.data.bio);
+        setImg(res.dp);
+        setName(res.name);
+        setBio(res.bio);
       })
       .catch((err) => {
         console.log(err);
       });
+
+    // axios
+    //   .get(`/api/users/${id}`)
+    //   .then((res) => {
+    //     setImg(res.data.dp);
+    //     setName(res.data.name);
+    //     setBio(res.data.bio);
+    //   })
+    //   .catch((err) => {
+    //     console.log(err);
+    //   });
   }, []);
 
   return (
@@ -286,14 +322,22 @@ const CreatorCard = ({ id }) => {
               height: "150px",
               width: "150px",
               objectFit: "cover",
+              cursor: "pointer",
             }}
             alt="creator"
+            onClick={() => {
+              navigate(`/profile/${id}`);
+            }}
           />
           <h4
             style={{
               fontSize: "25px",
               fontFamily: "AirbnbCerealBook",
               marginLeft: "30px",
+              cursor: "pointer",
+            }}
+            onClick={() => {
+              navigate(`/profile/${id}`);
             }}
           >
             {name}
@@ -495,7 +539,10 @@ const NftPage = ({ user, contracts }) => {
       if (!price || price.trim() === "") return;
 
       escContract.methods
-        .createSale(nft.id.substr(2), Web3.utils.toWei(price, "ether"))
+        .createSale(
+          Web3.utils.hexToNumberString(nft.id),
+          Web3.utils.toWei(price, "ether")
+        )
         .send({ from: user })
         .then((res) => {
           console.log(res);
@@ -610,7 +657,7 @@ const NftPage = ({ user, contracts }) => {
           </div>
           {nft ? (
             nft.sale ? (
-              nft.owner !== user.toLowerCase() ? (
+              user && nft.owner !== user.toLowerCase() ? (
                 <div style={{ fontSize: "24px" }}>
                   <b>Price&nbsp;:&nbsp;</b>
                   {Web3.utils.fromWei(nft.sale.price, "ether")}&nbsp;ETH
@@ -637,7 +684,12 @@ const NftPage = ({ user, contracts }) => {
                     </div>
                   ) : null}
                 </div>
-              ) : null
+              ) : (
+                <div style={{ fontSize: "24px" }}>
+                  <b>Price&nbsp;:&nbsp;</b>
+                  {Web3.utils.fromWei(nft.sale.price, "ether")}&nbsp;ETH
+                </div>
+              )
             ) : user && nft.owner === user.toLowerCase() ? (
               <div style={{ fontSize: "24px" }}>
                 <div>

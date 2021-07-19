@@ -1,6 +1,8 @@
 import clsx from "clsx";
 import React, { useState, useEffect } from "react";
 
+import { Badge } from "@material-ui/core";
+
 import getWeb3 from "../getWeb3";
 import Web3 from "web3";
 import {
@@ -127,6 +129,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 let nftCount = -1;
+let acc;
 
 const Header = ({ updateUser, updateContracts }) => {
   const classes = useStyles();
@@ -137,8 +140,9 @@ const Header = ({ updateUser, updateContracts }) => {
   const [accounts, setAccounts] = useState(null);
   const [contract, setContract] = useState(null);
   const [nfts, setNfts] = useState([]);
+  const [badge, setBadge] = useState(false);
 
-  const [status, setStatus] = useState(-1);
+  const [status, setStatus] = useState(0);
 
   const [anchorEl, setAnchorEl] = React.useState(null);
 
@@ -156,22 +160,33 @@ const Header = ({ updateUser, updateContracts }) => {
   //   console.log("newtork:", network);
   // };
 
+  const makeSignatureRequest = async (web3) => {
+    web3.eth.personal
+      .sign(
+        "Hi there from Grass! \n Sign this message to prove you have access to this wallet and we'll log you in. This won't cost you anything.",
+        acc
+      )
+      .then((res) => {
+        console.log(res);
+        setStatus(1);
+      })
+      .catch((err) => {
+        console.log(err);
+        disconnect();
+        alert("Please sign the request to connect");
+      });
+  };
+
   const connectWeb3 = async () => {
     setStatus(0);
     try {
       // Get network provider and web3 instance.
       const web3 = await getWeb3();
 
-      // let web3;
-      // if(window.ethereum)
-      // {
-      //   web3 = new Web3(window.ethereum);
-      //   await ethereum.enable();
-      // }
-      // else if(window.web3){
-      //   web3 = new Web3(window.web3.currentProvider);
-      // }
-
+      web3.eth.net.getId().then((res) => {
+        if (res === 3) setBadge(false);
+        else setBadge(true);
+      });
       // Use web3 to get the user's accounts.
       let accounts = await web3.eth.getAccounts();
 
@@ -197,36 +212,78 @@ const Header = ({ updateUser, updateContracts }) => {
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
       // this.setState({ web3, accounts, contract: instance }, this.runExample);
+      acc = accounts[0];
+
       setWeb3(web3);
       setAccounts(accounts);
       setContract(nftInstance);
-
-      sessionStorage.setItem("connected", "true");
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
         `Failed to load web3, accounts, or contract. Check console for details.`
       );
       console.error(error);
+      setStatus(-1);
     }
   };
 
   const checkSessionStorage = () => {
     if (typeof Storage !== undefined) {
       if (sessionStorage.getItem("connected") === "true") connectWeb3();
+      else if (window.ethereum) {
+        window.ethereum
+          .request({ method: "net_version" })
+          .then((res) => {
+            if (res === "3") setBadge(false);
+            else setBadge(true);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+        setStatus(-1);
+      } else setStatus(-1);
     }
+  };
+
+  const disconnect = () => {
+    setStatus(0);
+
+    sessionStorage.removeItem("connected");
+    updateUser(null);
+    updateContracts(null);
+    setBadge(false);
+    setStatus(-1);
+
+    handleClose();
   };
 
   useEffect(() => {
     checkSessionStorage();
+
+    window.ethereum.on("accountsChanged", (accounts) => {
+      console.log("accountsChanges", accounts);
+      if (accounts.length === 0 || acc !== accounts[0]) {
+        if (acc) disconnect();
+        acc = null;
+      }
+    });
+
+    // detect Network account change
+    window.ethereum.on("networkChanged", (networkId) => {
+      console.log("networkChanged", networkId);
+      if (networkId === "3") setBadge(false);
+      else setBadge(true);
+    });
   }, []);
 
   useEffect(() => {
-    if (contract) {
-      setStatus(1);
-      // runExample();
+    if (web3) {
+      if (sessionStorage.getItem("connected") !== "true") {
+        makeSignatureRequest(web3);
+        sessionStorage.setItem("connected", "true");
+      } else setStatus(1);
     }
-  }, [contract]);
+  }, [web3]);
 
   useEffect(() => {
     if (accounts && accounts.length > 0) {
@@ -303,30 +360,41 @@ const Header = ({ updateUser, updateContracts }) => {
               </Button>
             </li>
             <li className={classes.item}>
-              <Button
-                className={clsx(
-                  classes.button,
-                  status === -1 ? classes.b2 : classes.b2n
-                )}
-                style={{ width: "109px" }}
-                onClick={async (event) => {
-                  if (status === -1) await connectWeb3();
-                  else if (status === 1) handleClick(event);
+              <Badge
+                color="secondary"
+                // overlap="circular"
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "right",
                 }}
+                invisible={!badge}
+                badgeContent="Wrong Network"
               >
-                {status === 1 ? (
-                  `${accounts[0].substr(0, 6)}...${accounts[0].substr(
-                    accounts[0].length - 5,
-                    4
-                  )}`
-                ) : status === 0 ? (
-                  <CircularProgress
-                    style={{ width: "25px", height: "25px", color: "white" }}
-                  />
-                ) : (
-                  "Connect"
-                )}
-              </Button>
+                <Button
+                  className={clsx(
+                    classes.button,
+                    status === -1 ? classes.b2 : classes.b2n
+                  )}
+                  style={{ width: "109px" }}
+                  onClick={async (event) => {
+                    if (status === -1) await connectWeb3();
+                    else if (status === 1) handleClick(event);
+                  }}
+                >
+                  {status === 1 ? (
+                    `${accounts[0].substr(0, 6)}...${accounts[0].substr(
+                      accounts[0].length - 5,
+                      4
+                    )}`
+                  ) : status === 0 ? (
+                    <CircularProgress
+                      style={{ width: "25px", height: "25px", color: "white" }}
+                    />
+                  ) : (
+                    "Connect"
+                  )}
+                </Button>
+              </Badge>
               <StyledMenu
                 id="customized-menu"
                 anchorEl={anchorEl}
@@ -365,14 +433,7 @@ const Header = ({ updateUser, updateContracts }) => {
                 </StyledMenuItem>
                 <StyledMenuItem
                   onClick={() => {
-                    setStatus(0);
-
-                    sessionStorage.removeItem("connected");
-                    updateUser(null);
-                    updateContracts(null);
-                    setStatus(-1);
-
-                    handleClose();
+                    disconnect();
                   }}
                 >
                   <StyledListItemText

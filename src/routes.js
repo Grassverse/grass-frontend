@@ -39,6 +39,10 @@ const setPropsToRoutes = (
             element: <Profile user={user} />,
           },
           {
+            path: "/profile/:id",
+            element: <Profile user={user} />,
+          },
+          {
             path: "/edit-profile",
             element: <EditProfile user={user} />,
           },
@@ -72,6 +76,10 @@ const setPropsToRoutes = (
         {
           path: "/create-nft",
           element: <CreateNft />,
+        },
+        {
+          path: "/profile/:id",
+          element: <Profile />,
         },
         {
           path: "*",

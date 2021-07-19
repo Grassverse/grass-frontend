@@ -3,10 +3,22 @@ import CustomCard from "./CustomCard";
 import React, { useState, useEffect } from "react";
 import { CircularProgress, makeStyles } from "@material-ui/core";
 
-import pic from "../../assets/images/creators/1.jpg";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import axios from "axios";
+
+import getUser from "../../db";
+
+// import firebase from "firebase/app";
+// import "firebase/functions";
+
+// firebase.initializeApp({
+//   projectId: "grass-a3449",
+//   apiKey: "AIzaSyCcbRcmbdOymOq3HHYxXOPaZtuTq7ZGSB8",
+//   authDomain: "grass-a3449.firebaseapp.com",
+// });
+
+// const functions = firebase.functions();
 
 const useStyles = makeStyles(() => ({
   cid: {
@@ -21,6 +33,7 @@ const useStyles = makeStyles(() => ({
 const Profile = ({ user }) => {
   const classes = useStyles();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [tab, setTab] = useState(0);
   const [created, setCreated] = useState([]);
@@ -33,7 +46,7 @@ const Profile = ({ user }) => {
     axios
       .post("https://api.thegraph.com/subgraphs/name/swapnil1023/grass3", {
         query: `{
-          nftentities(where: {creator: "${user.toLowerCase()}"}) {
+          nftentities(where: {creator: "${profile.id.toLowerCase()}"}) {
             name
             description
             id
@@ -58,7 +71,7 @@ const Profile = ({ user }) => {
     axios
       .post("https://api.thegraph.com/subgraphs/name/swapnil1023/grass3", {
         query: `{
-          nftentities(where: {owner: "${user.toLowerCase()}"}) {
+          nftentities(where: {owner: "${profile.id.toLowerCase()}"}) {
             name
             description
             id
@@ -80,20 +93,59 @@ const Profile = ({ user }) => {
   };
 
   useEffect(() => {
-    axios
-      .get(`/api/users/${user}`)
+    setLoading(true);
+    // var addMessage = functions.httpsCallable(
+    //   "grassRoutes/api/users/" + user.toLowerCase()
+    // );
+    // addMessage().then((res) => {
+    //   console.log(res);
+    // });
+
+    const url = window.location.pathname;
+
+    let curr;
+    if (url === "/profile") curr = user;
+    else {
+      curr = url.split("/")[url.split("/").length - 1];
+
+      if (user && curr.toLowerCase() === user.toLowerCase())
+        navigate("/profile");
+    }
+
+    getUser(curr)
       .then((res) => {
-        setProfile(res.data);
-        setLoading(false);
-        getCreatedNfts();
-        getOwnedNfts();
+        if (res) {
+          console.log(res);
+
+          setProfile(res);
+          setLoading(false);
+        } else navigate("/edit-profile");
       })
       .catch((err) => {
-        console.log(err.response.data);
-        setLoading(false);
-        navigate("/edit-profile");
+        console.log(err);
       });
-  }, []);
+
+    // axios
+    //   .get(`/api/users/${user}`)
+    //   .then((res) => {
+    //     setProfile(res.data);
+    //     setLoading(false);
+    //     getCreatedNfts();
+    //     getOwnedNfts();
+    //   })
+    //   .catch((err) => {
+    //     console.log(err.response.data);
+    //     setLoading(false);
+    //     navigate("/edit-profile");
+    //   });
+  }, [location]);
+
+  useEffect(() => {
+    if (profile) {
+      getCreatedNfts();
+      getOwnedNfts();
+    }
+  }, [profile]);
 
   if (loading)
     return (
@@ -157,7 +209,7 @@ const Profile = ({ user }) => {
               }}
               className={classes.cid}
             >
-              {user.substr(0, 6)}....{user.substr(-4)}
+              {profile.id.substr(0, 6)}....{profile.id.substr(-4)}
             </span>
           </div>
         </div>

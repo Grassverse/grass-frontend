@@ -5,9 +5,15 @@ import Web3 from "web3";
 
 import { Avatar } from "@material-ui/core";
 
+import getUser from "../../db";
+
+import { useNavigate } from "react-router-dom";
+
 import axios from "axios";
 
 const CustomCard = ({ url, onClick, nft }) => {
+  const navigate = useNavigate();
+
   const [image, setImage] = useState(true);
   const [source, setSource] = useState("");
 
@@ -45,14 +51,23 @@ const CustomCard = ({ url, onClick, nft }) => {
 
   const getCreator = () => {
     console.log(nft);
-    axios
-      .get(`/api/users/${nft.creator.id}`)
+
+    getUser(nft.creator.id)
       .then((res) => {
-        if (res.data.dp) setCreator(res.data.dp);
+        if (res.dp) setCreator(res.dp);
       })
       .catch((err) => {
         console.log(err);
       });
+
+    // axios
+    //   .get(`/api/users/${nft.creator.id}`)
+    //   .then((res) => {
+    //     if (res.data.dp) setCreator(res.data.dp);
+    //   })
+    //   .catch((err) => {
+    //     console.log(err);
+    //   });
   };
 
   useEffect(() => {
@@ -89,7 +104,14 @@ const CustomCard = ({ url, onClick, nft }) => {
           ></video>
         )}
         {nft.sale ? <span className="left-one">SALE</span> : null}
-        <span className="right-one">
+        <span
+          className="right-one"
+          onClick={(event) => {
+            event.stopPropagation();
+
+            navigate(`/profile/${nft.creator.id}`);
+          }}
+        >
           {creator ? <Avatar src={creator}></Avatar> : null}
         </span>
         <div className="hover-card">

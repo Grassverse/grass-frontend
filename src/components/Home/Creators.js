@@ -1,17 +1,11 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import { makeStyles } from "@material-ui/core";
 
-import c1 from "../../assets/images/creators/1.jpg";
-import c2 from "../../assets/images/creators/2.jpg";
-import c3 from "../../assets/images/creators/3.jpg";
-import c4 from "../../assets/images/creators/4.jpg";
-import c5 from "../../assets/images/creators/5.jpg";
-import c6 from "../../assets/images/creators/6.jpg";
-import c7 from "../../assets/images/creators/7.jpg";
-import c8 from "../../assets/images/creators/8.jpg";
-import c9 from "../../assets/images/creators/9.jpg";
-import c10 from "../../assets/images/creators/10.jpg";
+import getUser from "../../db";
+import { useNavigate } from "react-router-dom";
+
+import axios from "axios";
 
 const useStyles = makeStyles({
   creator: {
@@ -30,7 +24,7 @@ const useStyles = makeStyles({
   },
   slider: {
     display: "flex",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     overflowX: "auto",
     height: "80px",
     paddingBottom: "30px",
@@ -38,43 +32,67 @@ const useStyles = makeStyles({
   },
 });
 
+const CreatorCircle = ({ id }) => {
+  const classes = useStyles();
+  const navigate = useNavigate();
+
+  const [img, setImg] = useState(null);
+
+  useEffect(() => {
+    getUser(id)
+      .then((res) => {
+        setImg(res.dp);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
+
+  return (
+    <div
+      className={classes.circle}
+      onClick={() => {
+        navigate(`/profile/${id}`);
+      }}
+    >
+      {img ? (
+        <img src={img} className={classes.creator} alt="creator-1" />
+      ) : null}
+    </div>
+  );
+};
+
 const Creators = () => {
   const classes = useStyles();
+
+  const [creators, setCreators] = useState(null);
+
+  useEffect(() => {
+    axios
+      .post("https://api.thegraph.com/subgraphs/name/swapnil1023/grass3", {
+        query: `{
+          creators {
+            id
+          }
+        }`,
+      })
+      .then((res) => {
+        setCreators(res.data.data.creators);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
 
   return (
     <div>
       <h2 style={{ letterSpacing: "1px" }}>Creators</h2>
       <div className={classes.slider}>
-        <div className={classes.circle}>
-          <img src={c1} className={classes.creator} alt="creator-1"></img>
-        </div>
-        <div className={classes.circle}>
-          <img src={c2} className={classes.creator} alt="creator-2"></img>
-        </div>
-        <div className={classes.circle}>
-          <img src={c3} className={classes.creator} alt="creator-3"></img>
-        </div>
-        <div className={classes.circle}>
-          <img src={c4} className={classes.creator} alt="creator-4"></img>
-        </div>
-        <div className={classes.circle}>
-          <img src={c5} className={classes.creator} alt="creator-5"></img>
-        </div>
-        <div className={classes.circle}>
-          <img src={c6} className={classes.creator} alt="creator-6"></img>
-        </div>
-        <div className={classes.circle}>
-          <img src={c7} className={classes.creator} alt="creator-7"></img>
-        </div>
-        <div className={classes.circle}>
-          <img src={c8} className={classes.creator} alt="creator-8"></img>
-        </div>
-        <div className={classes.circle}>
-          <img src={c9} className={classes.creator} alt="creator-9"></img>
-        </div>
-        <div className={classes.circle}>
-          <img src={c10} className={classes.creator} alt="creator-10"></img>
-        </div>
+        {creators
+          ? creators.map((el, index) => {
+              return <CreatorCircle key={index} id={el.id} />;
+            })
+          : null}
       </div>
     </div>
   );
