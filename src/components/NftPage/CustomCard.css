@@ -21,6 +21,7 @@
   border-radius: 10px;
   /* height: 330px; */
   width: 300px;
+  object-fit: cover;
 }
 
 .card-vid-2 {

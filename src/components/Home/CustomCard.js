@@ -98,7 +98,14 @@ const CustomCard = ({ url, left, onClick, nft }) => {
             draggable="false"
           ></video>
         )}
-        {nft.sale ? <span className="left-one">SALE</span> : null}
+        {nft.sale ? (
+          <span className="left-one">SALE</span>
+        ) : nft.auction ? (
+          <div>
+            <span className="left-one">AUCTION</span>
+            <span className="left-two">{nft.auction.status}</span>
+          </div>
+        ) : null}
         <span
           className="right-one"
           onClick={(event) => {
@@ -135,6 +142,17 @@ const CustomCard = ({ url, left, onClick, nft }) => {
                 }}
               >
                 {Web3.utils.fromWei(nft.sale.price, "ether") + " ETH"}
+              </p>
+            ) : nft.auction ? (
+              <p
+                style={{
+                  backgroundColor: "white",
+                  color: "black",
+                  padding: "4px 0px",
+                  borderRadius: "5px",
+                }}
+              >
+                {Web3.utils.fromWei(nft.auction.reservePrice, "ether") + " ETH"}
               </p>
             ) : null}
           </div>

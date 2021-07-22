@@ -32,6 +32,8 @@ import PersonIcon from "@material-ui/icons/Person";
 import EditOutlinedIcon from "@material-ui/icons/EditOutlined";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 
+import Modal from "./Modal";
+
 const StyledMenu = withStyles({
   list: { padding: "0px" },
   paper: {
@@ -141,6 +143,7 @@ const Header = ({ updateUser, updateContracts }) => {
   const [contract, setContract] = useState(null);
   const [nfts, setNfts] = useState([]);
   const [badge, setBadge] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const [status, setStatus] = useState(0);
 
@@ -152,6 +155,10 @@ const Header = ({ updateUser, updateContracts }) => {
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const modalClose = () => {
+    setOpen(false);
   };
 
   // const loadBlockchainData = async () => {
@@ -251,7 +258,7 @@ const Header = ({ updateUser, updateContracts }) => {
     sessionStorage.removeItem("connected");
     updateUser(null);
     updateContracts(null);
-    setBadge(false);
+
     setStatus(-1);
 
     handleClose();
@@ -260,20 +267,22 @@ const Header = ({ updateUser, updateContracts }) => {
   useEffect(() => {
     checkSessionStorage();
 
-    window.ethereum.on("accountsChanged", (accounts) => {
-      console.log("accountsChanges", accounts);
-      if (accounts.length === 0 || acc !== accounts[0]) {
-        if (acc) disconnect();
-        acc = null;
-      }
-    });
+    if (window.ethereum) {
+      window.ethereum.on("accountsChanged", (accounts) => {
+        console.log("accountsChanges", accounts);
+        if (accounts.length === 0 || acc !== accounts[0]) {
+          if (acc) disconnect();
+          acc = null;
+        }
+      });
 
-    // detect Network account change
-    window.ethereum.on("networkChanged", (networkId) => {
-      console.log("networkChanged", networkId);
-      if (networkId === "3") setBadge(false);
-      else setBadge(true);
-    });
+      // detect Network account change
+      window.ethereum.on("networkChanged", (networkId) => {
+        console.log("networkChanged", networkId);
+        if (networkId === "3") setBadge(false);
+        else setBadge(true);
+      });
+    }
   }, []);
 
   useEffect(() => {
@@ -290,6 +299,10 @@ const Header = ({ updateUser, updateContracts }) => {
       updateUser(accounts[0]);
     }
   }, [accounts]);
+
+  useEffect(() => {
+    if (!badge) modalClose();
+  }, [badge]);
 
   const runExample = async () => {
     // nftCount = await contract.methods.getCurrentCount().call();
@@ -377,8 +390,10 @@ const Header = ({ updateUser, updateContracts }) => {
                   )}
                   style={{ width: "109px" }}
                   onClick={async (event) => {
-                    if (status === -1) await connectWeb3();
-                    else if (status === 1) handleClick(event);
+                    if (status === -1) {
+                      if (badge) setOpen(true);
+                      else await connectWeb3();
+                    } else if (status === 1) handleClick(event);
                   }}
                 >
                   {status === 1 ? (
@@ -449,6 +464,12 @@ const Header = ({ updateUser, updateContracts }) => {
           </ul>
         </div>
       </div>
+      <Modal status={open} modalClose={modalClose} title="Wrong Network">
+        <div>
+          Your wallet is currently connected to a different network. Please
+          change it to the Ropsten network to continue.
+        </div>
+      </Modal>
     </div>
   );
 };

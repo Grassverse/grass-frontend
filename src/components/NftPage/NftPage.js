@@ -4,6 +4,7 @@ import "./NftPage.css";
 import { CONTRACT_ADDRESS, ESCROW_CONTRACT_ADDRESS } from "../../config";
 import Web3 from "web3";
 
+import Modal from "../Modal";
 import CustomCard from "./CustomCard";
 
 import { Button, Grid, makeStyles } from "@material-ui/core";
@@ -18,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 
 import polygon from "../../assets/images/icons/polygon-matic.png";
 import cube from "../../assets/images/icons/cube-logo.png";
+import { __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED } from "react-dom/cjs/react-dom.development";
 
 const useStyles = makeStyles((theme) => ({
   icon: {
@@ -367,6 +369,25 @@ const CreatorCard = ({ id }) => {
   );
 };
 
+const Timer = ({ duration, start }) => {
+  const [time, setTime] = useState("");
+
+  useEffect(() => {
+    if (start)
+      setInterval(() => {
+        setTime(
+          new Date(
+            new Date((start + duration) * 1000).getMilliseconds() -
+              new Date().getMilliseconds()
+          ).toLocaleTimeString()
+        );
+      }, 1000);
+  }, []);
+
+  if (start) return <div>{time}</div>;
+  return null;
+};
+
 const NftPage = ({ user, contracts }) => {
   const navigate = useNavigate();
 
@@ -374,8 +395,14 @@ const NftPage = ({ user, contracts }) => {
   const [history, setHistory] = useState([]);
   const [imgUri, setImgUri] = useState(null);
 
+  const [open, setOpen] = useState(false);
+
   const updateImageUri = (img) => {
     setImgUri(img);
+  };
+
+  const modalClose = () => {
+    setOpen(false);
   };
 
   const getNft = (id) => {
@@ -396,11 +423,22 @@ const NftPage = ({ user, contracts }) => {
             price
             owner
           }
+          auction {
+            id
+            status
+            reservePrice
+            bids
+            auctionCreatedAt
+            duration
+            owner
+            lastBid
+          }
         }
       }`,
       })
       .then((res) => {
         const data = res.data.data.nftentity;
+        console.log(data);
         if (data) setNft(data);
         else navigate("/");
       })
@@ -495,18 +533,23 @@ const NftPage = ({ user, contracts }) => {
   const buyNft = async () => {
     const escContract = contracts[1];
 
-    escContract.methods
-      .buySaleToken(Web3.utils.hexToNumberString(nft.id))
-      .send({
-        from: user,
-        value: nft.sale.price,
-      })
-      .then((res) => {
-        console.log("Success", res);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    const status = window.confirm(
+      `Are you sure want to buy nft "${nft.name}" ?`
+    );
+
+    if (status)
+      escContract.methods
+        .buySaleToken(Web3.utils.hexToNumberString(nft.id))
+        .send({
+          from: user,
+          value: nft.sale.price,
+        })
+        .then((res) => {
+          console.log("Success", res);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
   };
 
   const checkApprove = async () => {
@@ -572,6 +615,80 @@ const NftPage = ({ user, contracts }) => {
     }
   };
 
+  const startAuction = async () => {
+    const checkApproval = await checkApprove();
+
+    const nftContract = contracts[0];
+    const escContract = contracts[1];
+
+    if (checkApproval) {
+      const price = prompt("Enter reserve price");
+      console.log(price);
+
+      if (!price || price.trim() === "") return;
+
+      const time = prompt("Enter time duration");
+      console.log(time);
+
+      if (!time || time.trim() === "") return;
+
+      escContract.methods
+        .createAuction(
+          Web3.utils.hexToNumberString(nft.id),
+          parseInt(time),
+          Web3.utils.toWei(price, "ether")
+        )
+        .send({ from: user })
+        .then((res) => {
+          console.log(res);
+        })
+        .catch((err) => {
+          alert("Something went wrong");
+        });
+    } else {
+      const status = window.confirm("Approve your NFT for starting Auction");
+      if (status) {
+        nftContract.methods
+          .approve(
+            ESCROW_CONTRACT_ADDRESS,
+            Web3.utils.hexToNumberString(nft.id)
+          )
+          .send({
+            from: user,
+          })
+          .then((res) => {
+            console.log(res);
+            startAuction();
+          })
+          .catch((err) => {
+            alert("Something went wrong");
+          });
+      }
+    }
+  };
+
+  const placeBid = async () => {
+    const escContract = contracts[1];
+
+    const price = prompt("Enter bid price");
+    console.log(price);
+
+    if (!price || price.trim() === "") return;
+
+    escContract.methods
+      .createBid(Web3.utils.hexToNumberString(nft.id))
+      .send({
+        from: user,
+        value: Web3.utils.toWei(price, "ether"),
+      })
+      .then((res) => {
+        console.log("Success", res);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
   return (
     <div>
       <Grid container style={{ display: "flex", margin: "30px 0px" }}>
@@ -623,6 +740,17 @@ const NftPage = ({ user, contracts }) => {
                 >
                   ON&nbsp;&nbsp;SALE
                 </span>
+              ) : nft.auction ? (
+                <span
+                  style={{
+                    backgroundColor: "rgb(116, 23, 234)",
+                    color: "white",
+                    padding: "3px 5px",
+                    borderRadius: "5px",
+                  }}
+                >
+                  ON&nbsp;&nbsp;AUCTION
+                </span>
               ) : null
             ) : null}
           </div>
@@ -662,7 +790,9 @@ const NftPage = ({ user, contracts }) => {
                   <b>Price&nbsp;:&nbsp;</b>
                   {Web3.utils.fromWei(nft.sale.price, "ether")}&nbsp;ETH
                   {nft.sale.owner !== user.toLowerCase() ? (
-                    <div>
+                    <div
+                      style={{ display: "flex", justifyContent: "flex-end" }}
+                    >
                       <Button
                         style={{
                           backgroundColor: "rgb(116, 23, 234)",
@@ -676,7 +806,18 @@ const NftPage = ({ user, contracts }) => {
                           margin: "10px 0px 0px 0px",
                         }}
                         onClick={async () => {
-                          await buyNft();
+                          if (window.ethereum) {
+                            window.ethereum
+                              .request({ method: "net_version" })
+                              .then(async (res) => {
+                                if (res === "3") {
+                                  await buyNft();
+                                } else setOpen(true);
+                              })
+                              .catch((err) => {
+                                console.log(err);
+                              });
+                          }
                         }}
                       >
                         Buy Now
@@ -690,8 +831,95 @@ const NftPage = ({ user, contracts }) => {
                   {Web3.utils.fromWei(nft.sale.price, "ether")}&nbsp;ETH
                 </div>
               )
+            ) : nft.auction ? (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-evenly",
+                }}
+              >
+                <div>
+                  {user && nft.owner !== user.toLowerCase() ? (
+                    <div style={{ fontSize: "24px" }}>
+                      <b>
+                        {nft.auction.status === "OPEN"
+                          ? "Reserve Price"
+                          : "Highest Bid"}
+                        &nbsp;:&nbsp;
+                      </b>
+                      {nft.auction.status === "OPEN"
+                        ? Web3.utils.fromWei(nft.auction.reservePrice, "ether")
+                        : Web3.utils.fromWei(nft.auction.lastBid.bid, "ether")}
+                      &nbsp;ETH
+                      {nft.auction.owner !== user.toLowerCase() ? (
+                        <div
+                          style={{ display: "flex", justifyContent: "center" }}
+                        >
+                          <Button
+                            style={{
+                              backgroundColor: "rgb(116, 23, 234)",
+                              color: "white",
+                              textTransform: "none",
+                              borderRadius: "26px",
+                              // width: "120px",
+                              // margin: "4px",
+                              fontWeight: "600",
+                              padding: "8px 40px",
+                              margin: "10px 0px 0px 0px",
+                            }}
+                            onClick={async () => {
+                              if (window.ethereum) {
+                                window.ethereum
+                                  .request({ method: "net_version" })
+                                  .then(async (res) => {
+                                    if (res === "3") {
+                                      await placeBid();
+                                    } else setOpen(true);
+                                  })
+                                  .catch((err) => {
+                                    console.log(err);
+                                  });
+                              }
+                            }}
+                          >
+                            Place Bid
+                          </Button>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: "24px" }}>
+                      <b>
+                        {nft.auction.status === "OPEN"
+                          ? "Reserve Price"
+                          : "Highest Bid"}
+                        &nbsp;:&nbsp;
+                      </b>
+                      {nft.auction.status === "OPEN"
+                        ? Web3.utils.fromWei(nft.auction.reservePrice, "ether")
+                        : Web3.utils.fromWei(nft.auction.lastBid.bid, "ether")}
+                      &nbsp;ETH
+                    </div>
+                  )}
+                </div>
+                <div>
+                  {" "}
+                  <Timer
+                    duration={nft.auction.duration}
+                    start={nft.auction.firstBidTime}
+                  />
+                </div>
+              </div>
             ) : user && nft.owner === user.toLowerCase() ? (
-              <div style={{ fontSize: "24px" }}>
+              <div
+                style={{
+                  fontSize: "24px",
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  flexDirection: "column",
+                }}
+              >
                 <div>
                   <Button
                     style={{
@@ -699,17 +927,60 @@ const NftPage = ({ user, contracts }) => {
                       color: "white",
                       textTransform: "none",
                       borderRadius: "26px",
-                      // width: "120px",
+                      width: "200px",
                       // margin: "4px",
                       fontWeight: "600",
                       padding: "8px 40px",
                       margin: "10px 0px 0px 0px",
                     }}
                     onClick={async () => {
-                      sellNft();
+                      if (window.ethereum) {
+                        window.ethereum
+                          .request({ method: "net_version" })
+                          .then(async (res) => {
+                            if (res === "3") {
+                              await sellNft();
+                            } else setOpen(true);
+                          })
+                          .catch((err) => {
+                            console.log(err);
+                          });
+                      }
                     }}
                   >
                     Sell
+                  </Button>
+                </div>
+                <div>
+                  <Button
+                    style={{
+                      backgroundColor: "rgb(0, 0, 0)",
+                      color: "white",
+                      textTransform: "none",
+                      borderRadius: "26px",
+                      width: "200px",
+                      // width: "120px",
+                      // margin: "4px",
+                      fontWeight: "600",
+                      padding: "8px 30px",
+                      margin: "10px 0px 0px 0px",
+                    }}
+                    onClick={async () => {
+                      if (window.ethereum) {
+                        window.ethereum
+                          .request({ method: "net_version" })
+                          .then(async (res) => {
+                            if (res === "3") {
+                              await startAuction();
+                            } else setOpen(true);
+                          })
+                          .catch((err) => {
+                            console.log(err);
+                          });
+                      }
+                    }}
+                  >
+                    Auction
                   </Button>
                 </div>
               </div>
@@ -739,6 +1010,12 @@ const NftPage = ({ user, contracts }) => {
         </Grid>
       </Grid>
       {nft ? <CreatorCard id={nft.creator.id} /> : null}
+      <Modal status={open} modalClose={modalClose} title="Wrong Network">
+        <div>
+          Your wallet is currently connected to a different network. Please
+          change it to the Ropsten network to continue.
+        </div>
+      </Modal>
     </div>
   );
 };
