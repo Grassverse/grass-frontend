@@ -375,16 +375,34 @@ const Timer = ({ duration, start }) => {
   useEffect(() => {
     if (start)
       setInterval(() => {
+        let time =
+          ((parseInt(start) + parseInt(duration)) * 1000 -
+            new Date().getTime()) /
+          1000;
+        const days = parseInt(time / 86400);
+        time = time % 86400;
+        const hours = parseInt(time / 3600);
+        time = time % 3600;
+        const minutes = parseInt(time / 60);
+        time = time % 60;
+        const seconds = parseInt(time);
+
         setTime(
-          new Date(
-            new Date((start + duration) * 1000).getMilliseconds() -
-              new Date().getMilliseconds()
-          ).toLocaleTimeString()
+          `${days !== 0 ? days + "days " : ""}${
+            hours !== 0 ? hours + " hours " : ""
+          }${minutes !== 0 ? minutes + " min " : ""}${seconds + " sec"}`
         );
       }, 1000);
   }, []);
 
-  if (start) return <div>{time}</div>;
+  if (start)
+    return (
+      <div>
+        <b>Time remaining:</b>
+        <br />
+        <div style={{ color: "grey", fontSize: "18px" }}>{time}</div>
+      </div>
+    );
   return null;
 };
 
@@ -431,7 +449,11 @@ const NftPage = ({ user, contracts }) => {
             auctionCreatedAt
             duration
             owner
-            lastBid
+            firstBidTime
+            lastBid{
+              bid
+              bidder
+            }
           }
         }
       }`,
@@ -836,7 +858,7 @@ const NftPage = ({ user, contracts }) => {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "space-evenly",
+                  justifyContent: "space-between",
                 }}
               >
                 <div>
@@ -904,7 +926,6 @@ const NftPage = ({ user, contracts }) => {
                   )}
                 </div>
                 <div>
-                  {" "}
                   <Timer
                     duration={nft.auction.duration}
                     start={nft.auction.firstBidTime}
