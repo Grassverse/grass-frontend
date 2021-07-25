@@ -816,6 +816,21 @@ const NftPage = ({ user, contracts }) => {
       });
   };
 
+  const cancelAuction = async () => {
+    const escContract = contracts[1];
+
+    escContract.methods
+      .cancelAuction(Web3.utils.hexToNumberString(nft.id))
+      .send({ from: user })
+      .then((res) => {
+        console.log("Success", res);
+        window.location.reload();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
   return (
     <div>
       <Grid container style={{ display: "flex", margin: "30px 0px" }}>
@@ -978,7 +993,7 @@ const NftPage = ({ user, contracts }) => {
                   </IconButton>
                 </div>
                 <Grid item xs={12} sm={6}>
-                  {user && nft.owner !== user.toLowerCase() ? (
+                  {user && nft.auction.owner !== user.toLowerCase() ? (
                     <div style={{ fontSize: "24px" }}>
                       <b>
                         {nft.auction.status === "OPEN"
@@ -993,7 +1008,7 @@ const NftPage = ({ user, contracts }) => {
                       {nft.auction.lastBid ? (
                         <Auctioneer id={nft.auction.lastBid.bidder} />
                       ) : null}
-                      {nft.auction.owner !== user.toLowerCase() && !timeUp ? (
+                      {!timeUp ? (
                         <div
                           style={{ display: "flex", justifyContent: "center" }}
                         >
@@ -1077,6 +1092,41 @@ const NftPage = ({ user, contracts }) => {
                         ? Web3.utils.fromWei(nft.auction.reservePrice, "ether")
                         : Web3.utils.fromWei(nft.auction.lastBid.bid, "ether")}
                       &nbsp;ETH
+                      {!nft.auction.lastBid ? (
+                        <div
+                          style={{ display: "flex", justifyContent: "center" }}
+                        >
+                          <Button
+                            style={{
+                              backgroundColor: "rgb(116, 23, 234)",
+                              color: "white",
+                              textTransform: "none",
+                              borderRadius: "26px",
+                              // width: "120px",
+                              // margin: "4px",
+                              fontWeight: "600",
+                              padding: "8px 40px",
+                              margin: "10px 0px 0px 0px",
+                            }}
+                            onClick={async () => {
+                              if (window.ethereum) {
+                                window.ethereum
+                                  .request({ method: "net_version" })
+                                  .then(async (res) => {
+                                    if (res === "3") {
+                                      await cancelAuction();
+                                    } else setOpen(true);
+                                  })
+                                  .catch((err) => {
+                                    console.log(err);
+                                  });
+                              }
+                            }}
+                          >
+                            Cancel Auction
+                          </Button>
+                        </div>
+                      ) : null}
                     </div>
                   )}
                 </Grid>
@@ -1194,7 +1244,7 @@ const NftPage = ({ user, contracts }) => {
           change it to the Ropsten network to continue.
         </div>
       </Modal>
-      {nft ? (
+      {nft && nft.auction ? (
         <BidHistory
           status={openBH}
           modalClose={modalCloseBH}
