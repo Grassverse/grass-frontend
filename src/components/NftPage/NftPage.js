@@ -6,11 +6,14 @@ import Web3 from "web3";
 
 import Modal from "../Modal";
 import CustomCard from "./CustomCard";
+import BidHistory from "./BidHistoryModal";
 
-import { Button, Grid, makeStyles } from "@material-ui/core";
+import { Button, Grid, makeStyles, IconButton } from "@material-ui/core";
+
 import OpenInNewIcon from "@material-ui/icons/OpenInNew";
 import CheckCircleOutlineRoundedIcon from "@material-ui/icons/CheckCircleOutlineRounded";
 import VisibilityOutlinedIcon from "@material-ui/icons/VisibilityOutlined";
+import HistoryIcon from "@material-ui/icons/History";
 
 import getUser from "../../db";
 
@@ -19,7 +22,6 @@ import { useNavigate } from "react-router-dom";
 
 import polygon from "../../assets/images/icons/polygon-matic.png";
 import cube from "../../assets/images/icons/cube-logo.png";
-import { __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED } from "react-dom/cjs/react-dom.development";
 
 const useStyles = makeStyles((theme) => ({
   icon: {
@@ -94,7 +96,18 @@ const POA = ({ id, uri, imgUri }) => {
         textAlign: "left",
       }}
     >
-      <h2>Proof of Authenticity</h2>
+      <div style={{ display: "flex", marginTop: "30px" }}>
+        <div>
+          <h4 style={{ margin: "0px 20px 0px 0px" }}>
+            Proof&nbsp;of&nbsp;Authenticity
+          </h4>
+        </div>
+        <div style={{ width: "100%", display: "flex", alignItems: "center" }}>
+          <div style={{ width: "100%" }}>
+            <hr style={{ width: "100%" }} />
+          </div>
+        </div>
+      </div>
       <div
         className={classes.icon}
         onClick={() => {
@@ -210,12 +223,6 @@ const HistCard = ({ el }) => {
   return (
     <div
       className="history-el"
-      style={{
-        display: "flex",
-        alignItems: "center",
-        margin: "10px 0px",
-        position: "relative",
-      }}
       onClick={() => {
         window.open(`https://ropsten.etherscan.io/tx/${el.id.split("-")[0]}`);
       }}
@@ -369,16 +376,27 @@ const CreatorCard = ({ id }) => {
   );
 };
 
-const Timer = ({ duration, start }) => {
+const Timer = ({ duration, start, timeUp, updateAuctionTime }) => {
   const [time, setTime] = useState("");
 
   useEffect(() => {
+    let timer;
     if (start)
-      setInterval(() => {
+      timer = setInterval(() => {
         let time =
           ((parseInt(start) + parseInt(duration)) * 1000 -
             new Date().getTime()) /
           1000;
+
+        if (time < 0) {
+          setTime("Auction Ended");
+          updateAuctionTime(true);
+          clearInterval(timer);
+          return;
+        }
+
+        if (timeUp) updateAuctionTime(false);
+
         const days = parseInt(time / 86400);
         time = time % 86400;
         const hours = parseInt(time / 3600);
@@ -406,6 +424,60 @@ const Timer = ({ duration, start }) => {
   return null;
 };
 
+const Auctioneer = ({ id }) => {
+  const [name, setName] = useState("");
+  const [dp, setDp] = useState("");
+
+  useEffect(() => {
+    getUser(id)
+      .then((res) => {
+        console.log(res);
+        setName(res.name);
+        setDp(res.dp);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
+
+  if (name === "" || dp === "") return null;
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        fontSize: "16px",
+        margin: "15px 0px",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          width: "fit-content",
+          boxShadow: "0px 0px 5px rgb(100,100,100)",
+          borderRadius: "30px",
+          padding: "5px 10px",
+        }}
+      >
+        <img
+          src={dp}
+          style={{
+            width: "20px",
+            height: "20px",
+            objectFit: "cover",
+            borderRadius: "50%",
+            marginRight: "5px",
+          }}
+          alt="auctioneer_dp"
+        />
+        {name}
+      </div>
+    </div>
+  );
+};
+
 const NftPage = ({ user, contracts }) => {
   const navigate = useNavigate();
 
@@ -414,6 +486,13 @@ const NftPage = ({ user, contracts }) => {
   const [imgUri, setImgUri] = useState(null);
 
   const [open, setOpen] = useState(false);
+  const [openBH, setOpenBH] = useState(false);
+
+  const [timeUp, setTimeUp] = useState(true);
+
+  const updateAuctionTime = (el) => {
+    setTimeUp(el);
+  };
 
   const updateImageUri = (img) => {
     setImgUri(img);
@@ -421,6 +500,10 @@ const NftPage = ({ user, contracts }) => {
 
   const modalClose = () => {
     setOpen(false);
+  };
+
+  const modalCloseBH = () => {
+    setOpenBH(false);
   };
 
   const getNft = (id) => {
@@ -445,7 +528,14 @@ const NftPage = ({ user, contracts }) => {
             id
             status
             reservePrice
-            bids
+            bids{
+              id
+              bid
+              bidder
+              status
+              timestamp
+              txnHash
+            }
             auctionCreatedAt
             duration
             owner
@@ -705,6 +795,21 @@ const NftPage = ({ user, contracts }) => {
       })
       .then((res) => {
         console.log("Success", res);
+        window.location.reload();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  const claimNft = async () => {
+    const escContract = contracts[1];
+
+    escContract.methods
+      .endAuction(Web3.utils.hexToNumberString(nft.id))
+      .send({ from: user })
+      .then((res) => {
+        console.log("Success", res);
       })
       .catch((err) => {
         console.log(err);
@@ -854,14 +959,25 @@ const NftPage = ({ user, contracts }) => {
                 </div>
               )
             ) : nft.auction ? (
-              <div
+              <Grid
+                container
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
+                  position: "relative",
                 }}
               >
-                <div>
+                <div style={{ position: "absolute", right: 0, top: -40 }}>
+                  <IconButton
+                    onClick={() => {
+                      setOpenBH(true);
+                    }}
+                  >
+                    <HistoryIcon />
+                  </IconButton>
+                </div>
+                <Grid item xs={12} sm={6}>
                   {user && nft.owner !== user.toLowerCase() ? (
                     <div style={{ fontSize: "24px" }}>
                       <b>
@@ -874,7 +990,10 @@ const NftPage = ({ user, contracts }) => {
                         ? Web3.utils.fromWei(nft.auction.reservePrice, "ether")
                         : Web3.utils.fromWei(nft.auction.lastBid.bid, "ether")}
                       &nbsp;ETH
-                      {nft.auction.owner !== user.toLowerCase() ? (
+                      {nft.auction.lastBid ? (
+                        <Auctioneer id={nft.auction.lastBid.bidder} />
+                      ) : null}
+                      {nft.auction.owner !== user.toLowerCase() && !timeUp ? (
                         <div
                           style={{ display: "flex", justifyContent: "center" }}
                         >
@@ -908,6 +1027,42 @@ const NftPage = ({ user, contracts }) => {
                             Place Bid
                           </Button>
                         </div>
+                      ) : nft.auction.lastBid &&
+                        nft.auction.lastBid.bidder === user.toLowerCase() &&
+                        timeUp ? (
+                        <div
+                          style={{ display: "flex", justifyContent: "center" }}
+                        >
+                          <Button
+                            style={{
+                              backgroundColor: "rgb(116, 23, 234)",
+                              color: "white",
+                              textTransform: "none",
+                              borderRadius: "26px",
+                              // width: "120px",
+                              // margin: "4px",
+                              fontWeight: "600",
+                              padding: "8px 40px",
+                              margin: "10px 0px 0px 0px",
+                            }}
+                            onClick={async () => {
+                              if (window.ethereum) {
+                                window.ethereum
+                                  .request({ method: "net_version" })
+                                  .then(async (res) => {
+                                    if (res === "3") {
+                                      await claimNft();
+                                    } else setOpen(true);
+                                  })
+                                  .catch((err) => {
+                                    console.log(err);
+                                  });
+                              }
+                            }}
+                          >
+                            Claim Nft
+                          </Button>
+                        </div>
                       ) : null}
                     </div>
                   ) : (
@@ -924,14 +1079,16 @@ const NftPage = ({ user, contracts }) => {
                       &nbsp;ETH
                     </div>
                   )}
-                </div>
-                <div>
+                </Grid>
+                <Grid item xs={12} sm={6}>
                   <Timer
                     duration={nft.auction.duration}
                     start={nft.auction.firstBidTime}
+                    timeUp={timeUp}
+                    updateAuctionTime={updateAuctionTime}
                   />
-                </div>
-              </div>
+                </Grid>
+              </Grid>
             ) : user && nft.owner === user.toLowerCase() ? (
               <div
                 style={{
@@ -1037,6 +1194,14 @@ const NftPage = ({ user, contracts }) => {
           change it to the Ropsten network to continue.
         </div>
       </Modal>
+      {nft ? (
+        <BidHistory
+          status={openBH}
+          modalClose={modalCloseBH}
+          title="Bid History"
+          bids={nft.auction.bids}
+        />
+      ) : null}
     </div>
   );
 };
