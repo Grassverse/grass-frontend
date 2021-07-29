@@ -121,6 +121,7 @@ const CustomCard = ({ url, left, onClick, nft }) => {
             style={{
               textAlign: "center",
               padding: "20px",
+              width: "100%",
             }}
           >
             {nft.name}

@@ -506,6 +506,10 @@ const NftPage = ({ user, contracts }) => {
     setOpenBH(false);
   };
 
+  useEffect(() => {
+    console.log(timeUp);
+  }, [timeUp]);
+
   const getNft = (id) => {
     axios
       .post("https://api.thegraph.com/subgraphs/name/swapnil1023/grass3", {
@@ -983,15 +987,17 @@ const NftPage = ({ user, contracts }) => {
                   position: "relative",
                 }}
               >
-                <div style={{ position: "absolute", right: 0, top: -40 }}>
-                  <IconButton
-                    onClick={() => {
-                      setOpenBH(true);
-                    }}
-                  >
-                    <HistoryIcon />
-                  </IconButton>
-                </div>
+                {nft.auction.lastBid ? (
+                  <div style={{ position: "absolute", right: 0, top: -40 }}>
+                    <IconButton
+                      onClick={() => {
+                        setOpenBH(true);
+                      }}
+                    >
+                      <HistoryIcon />
+                    </IconButton>
+                  </div>
+                ) : null}
                 <Grid item xs={12} sm={6}>
                   {user && nft.auction.owner !== user.toLowerCase() ? (
                     <div style={{ fontSize: "24px" }}>
@@ -1008,7 +1014,7 @@ const NftPage = ({ user, contracts }) => {
                       {nft.auction.lastBid ? (
                         <Auctioneer id={nft.auction.lastBid.bidder} />
                       ) : null}
-                      {!timeUp ? (
+                      {!timeUp || !nft.auction.lastBid ? (
                         <div
                           style={{ display: "flex", justifyContent: "center" }}
                         >
@@ -1043,8 +1049,7 @@ const NftPage = ({ user, contracts }) => {
                           </Button>
                         </div>
                       ) : nft.auction.lastBid &&
-                        nft.auction.lastBid.bidder === user.toLowerCase() &&
-                        timeUp ? (
+                        nft.auction.lastBid.bidder === user.toLowerCase() ? (
                         <div
                           style={{ display: "flex", justifyContent: "center" }}
                         >
@@ -1092,7 +1097,7 @@ const NftPage = ({ user, contracts }) => {
                         ? Web3.utils.fromWei(nft.auction.reservePrice, "ether")
                         : Web3.utils.fromWei(nft.auction.lastBid.bid, "ether")}
                       &nbsp;ETH
-                      {!nft.auction.lastBid ? (
+                      {user && !nft.auction.lastBid ? (
                         <div
                           style={{ display: "flex", justifyContent: "center" }}
                         >

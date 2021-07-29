@@ -50,10 +50,16 @@ export default function AlertDialogSlide({
           style={{
             backgroundColor: "black",
             color: "white",
-            paddingTop: "10px",
+            paddingTop: "30px",
           }}
         >
-          <h2>{title}</h2>
+          <b
+            style={{
+              fontSize: "26px",
+            }}
+          >
+            {title}
+          </b>
           <IconButton
             style={{
               color: "white",

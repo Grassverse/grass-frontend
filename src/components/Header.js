@@ -88,6 +88,7 @@ const useStyles = makeStyles(() => ({
     justifyContent: "center",
     fontSize: "14px",
     margin: "25px 0px",
+    padding: 0,
   },
   item: {
     cursor: "pointer",
@@ -174,7 +175,10 @@ const Header = ({ updateUser, updateContracts }) => {
         acc
       )
       .then((res) => {
-        console.log(res);
+        // console.log(res);
+        if (accounts && accounts.length > 0) {
+          updateUser(accounts[0]);
+        }
         setStatus(1);
       })
       .catch((err) => {
@@ -286,17 +290,16 @@ const Header = ({ updateUser, updateContracts }) => {
   }, []);
 
   useEffect(() => {
-    if (web3) {
+    if (web3 && accounts && accounts.length > 0) {
       if (sessionStorage.getItem("connected") !== "true") {
         makeSignatureRequest(web3);
         sessionStorage.setItem("connected", "true");
-      } else setStatus(1);
-    }
-  }, [web3]);
-
-  useEffect(() => {
-    if (accounts && accounts.length > 0) {
-      updateUser(accounts[0]);
+      } else {
+        if (accounts && accounts.length > 0) {
+          updateUser(accounts[0]);
+        }
+        setStatus(1);
+      }
     }
   }, [accounts]);
 

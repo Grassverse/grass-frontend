@@ -93,14 +93,16 @@ const CurrentAuctions = () => {
             auction {
               status
               reservePrice
+              bids
             }
           }
         }`,
       })
       .then((res) => {
         const data = res.data.data.nftentities;
+        console.log(data);
         const sorted = data.sort((a, b) => {
-          return a.bids.length - b.bids.length;
+          return a.auction.bids.length - b.auction.bids.length;
         });
         setNfts(sorted);
       })
